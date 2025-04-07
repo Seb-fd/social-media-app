@@ -20,9 +20,15 @@ type CommentsListProps = {
   comments: CommentWithAuthor[];
   dbUserId: string | null;
   onDeleteComment: (commentId: string) => Promise<void>;
+  postAuthorId: string;
 };
 
-const CommentsList: React.FC<CommentsListProps> = ({ comments, dbUserId }) => {
+const CommentsList: React.FC<CommentsListProps> = ({
+  comments,
+  dbUserId,
+  onDeleteComment,
+  postAuthorId,
+}) => {
   return (
     <div className="space-y-4">
       {comments.map((comment) => (
@@ -54,11 +60,12 @@ const CommentsList: React.FC<CommentsListProps> = ({ comments, dbUserId }) => {
               </div>
             </div>
 
-            {dbUserId === comment.author.id && (
+            {(dbUserId === comment.author.id || dbUserId === postAuthorId) && (
               <div className="ml-4">
                 <DeleteCommentButton
                   commentId={comment.id}
                   postId={comment.postId}
+                  onDelete={() => onDeleteComment(comment.id)}
                 />
               </div>
             )}

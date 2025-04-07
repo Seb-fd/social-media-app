@@ -8,7 +8,7 @@ import { getDbUserId } from "./user.action";
 export async function getProfileByUsername(username: string) {
   try {
     const user = await prisma.user.findUnique({
-      where: { username: username },
+      where: { username },
       select: {
         id: true,
         name: true,
@@ -25,10 +25,43 @@ export async function getProfileByUsername(username: string) {
             posts: true,
           },
         },
+        followers: {
+          select: {
+            follower: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                image: true,
+              },
+            },
+          },
+        },
+        following: {
+          select: {
+            following: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                image: true,
+              },
+            },
+          },
+        },
       },
     });
 
-    return user;
+    if (!user) return null;
+
+    const followers = user.followers.map((f) => f.follower);
+    const following = user.following.map((f) => f.following);
+
+    return {
+      ...user,
+      followers,
+      following,
+    };
   } catch (error) {
     console.error("Error fetching profile:", error);
     throw new Error("Failed to fetch profile");
@@ -194,4 +227,44 @@ export async function isFollowing(userId: string) {
     console.error("Error checking follow status:", error);
     return false;
   }
+}
+
+export async function getFollowers(userId: string) {
+  const followers = await prisma.follows.findMany({
+    where: {
+      followingId: userId,
+    },
+    include: {
+      follower: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  return followers.map((f) => f.follower);
+}
+
+export async function getFollowing(userId: string) {
+  const following = await prisma.follows.findMany({
+    where: {
+      followerId: userId,
+    },
+    include: {
+      following: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          image: true,
+        },
+      },
+    },
+  });
+
+  return following.map((f) => f.following);
 }

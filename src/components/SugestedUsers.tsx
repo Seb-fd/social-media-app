@@ -34,9 +34,12 @@ async function SugestedUsers() {
                   >
                     {user.name}
                   </Link>
-                  <p className="text-muted-foreground hover:underline">
+                  <Link
+                    href={`/profile/${user.username}`}
+                    className="text-muted-foreground hover:underline"
+                  >
                     @{user.username}
-                  </p>
+                  </Link>
                   <p className="text-muted-foreground">
                     {user._count.followers} followers
                   </p>

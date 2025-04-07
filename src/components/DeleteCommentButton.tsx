@@ -6,13 +6,17 @@ import { DeleteAlertDialog } from "@/components/DeleteAlertDialog";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
+type DeleteCommentButtonProps = {
+  commentId: string;
+  postId: string;
+  onDelete?: () => void; // opcional
+};
+
 export function DeleteCommentButton({
   commentId,
   postId,
-}: {
-  commentId: string;
-  postId: string;
-}) {
+  onDelete,
+}: DeleteCommentButtonProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -26,7 +30,11 @@ export function DeleteCommentButton({
           const res = await deleteComment(commentId);
           if (res.success) {
             toast.success("Comment deleted successfully");
-            router.refresh(); // revalidate current route
+            if (onDelete) {
+              onDelete(); // actualiza estado en CommentsList si se provee
+            } else {
+              router.refresh(); // fallback si no se pasa onDelete
+            }
           } else {
             toast.error("Failed to delete comment");
           }

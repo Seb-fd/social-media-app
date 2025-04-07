@@ -24,10 +24,23 @@ import {
 import { Textarea } from "./ui/textarea";
 import { deleteComment } from "@/actions/comment.action";
 
+type PostCardProps = {
+  post: Post;
+  dbUserId: string | null;
+  isLikedByCurrentUser: boolean;
+  onDeletePost?: (postId: string) => Promise<void>;
+  onDeleteComment?: (commentId: string) => Promise<void>;
+};
+
 type Posts = Awaited<ReturnType<typeof getPosts>>;
 type Post = Posts[number];
 
-function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
+function PostCard({
+  post,
+  dbUserId,
+  onDeletePost,
+  onDeleteComment,
+}: PostCardProps) {
   const { user } = useUser();
   const [newComment, setNewComment] = useState("");
   const [isCommenting, setIsCommenting] = useState(false);
@@ -74,6 +87,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
   };
 
   const handleDeletePost = async () => {
+    if (onDeletePost) return onDeletePost(post.id);
     if (isDeleting) return;
     try {
       setIsDeleting(true);
@@ -88,6 +102,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
   };
 
   const handleDeleteComment = async (commentId: string) => {
+    if (onDeleteComment) return onDeleteComment(commentId);
     if (deletingCommentId) return;
     setDeletingCommentId(commentId);
     try {
@@ -134,7 +149,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                     </span>
                   </div>
                 </div>
-                {dbUserId === post.author.id && (
+                {dbUserId && dbUserId === post.author.id && (
                   <DeleteAlertDialog
                     isDeleting={isDeleting}
                     onDelete={handleDeletePost}
@@ -223,6 +238,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                         />
                       </Avatar>
                     </Link>
+
                     <div className="flex-1 min-w-0">
                       <div className="flex justify-between items-start">
                         <div>
@@ -231,7 +247,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                               href={`/profile/${comment.author.username}`}
                               className="font-medium text-sm hover:underline"
                             >
-                              {comment.author.name}
+                              {comment.author.name ?? comment.author.username}
                             </Link>
                             <Link
                               href={`/profile/${comment.author.username}`}
@@ -252,7 +268,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                           </p>
                         </div>
 
-                        {dbUserId === comment.author.id && (
+                        {dbUserId && dbUserId === comment.author.id && (
                           <DeleteAlertDialog
                             isDeleting={deletingCommentId === comment.id}
                             onDelete={() => handleDeleteComment(comment.id)}

@@ -17,7 +17,14 @@ export default async function Home() {
 
         <div className="space-y-6">
           {posts.map((post) => (
-            <PostCard key={post.id} post={post} dbUserId={dbUserId} />
+            <PostCard
+              key={post.id}
+              post={post}
+              dbUserId={dbUserId}
+              isLikedByCurrentUser={post.likes.some(
+                (like) => like.userId === dbUserId
+              )}
+            />
           ))}
         </div>
       </div>

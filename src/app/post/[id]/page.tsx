@@ -83,6 +83,7 @@ export default async function PostPage({ params }: Props) {
         <CommentsList
           comments={post.comments}
           dbUserId={userId}
+          postAuthorId={post.author.id}
           onDeleteComment={async (commentId) => {
             "use server";
             const { success } = await deleteComment(commentId);

@@ -5,7 +5,7 @@ import {
   getUserPosts,
   updateProfile,
 } from "@/actions/profile.action";
-import { toggleFollow } from "@/actions/user.action";
+import { getDbUserId, toggleFollow } from "@/actions/user.action";
 import PostCard from "@/components/PostCard";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -31,15 +31,34 @@ import {
   HeartIcon,
   LinkIcon,
   MapPinIcon,
+  UserCheckIcon,
+  UsersIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import Link from "next/link";
+import { getPosts } from "@/actions/post.action";
+import { currentUser } from "@clerk/nextjs/server";
 
-type User = Awaited<ReturnType<typeof getProfileByUsername>>;
+type User = NonNullable<Awaited<ReturnType<typeof getProfileByUsername>>>;
+
 type Posts = Awaited<ReturnType<typeof getUserPosts>>;
 
 interface ProfilePageClientProps {
-  user: NonNullable<User>;
+  user: NonNullable<User> & {
+    followers: {
+      id: string;
+      name: string | null;
+      username: string;
+      image: string | null;
+    }[];
+    following: {
+      id: string;
+      name: string | null;
+      username: string;
+      image: string | null;
+    }[];
+  };
   posts: Posts;
   likedPosts: Posts;
   isFollowing: boolean;
@@ -56,6 +75,19 @@ function ProfilePageClient({
   const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
 
+  const [dbUserId, setDbUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDbUserId = async () => {
+      if (currentUser) {
+        const id = await getDbUserId();
+        setDbUserId(id);
+      }
+    };
+
+    fetchDbUserId();
+  }, [currentUser]);
+
   const [editForm, setEditForm] = useState({
     name: user.name || "",
     bio: user.bio || "",
@@ -63,7 +95,30 @@ function ProfilePageClient({
     website: user.website || "",
   });
 
+  const isValidURL = (url: string) => {
+    const pattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-]*)*\/?$/;
+    return pattern.test(url);
+  };
+
   const handleEditSubmit = async () => {
+    const { name, bio, website } = editForm;
+
+    // Validaciones
+    if (name.length > 50) {
+      toast.error("El nombre no puede tener más de 50 caracteres");
+      return;
+    }
+
+    if (bio.length > 160) {
+      toast.error("La biografía no puede tener más de 160 caracteres");
+      return;
+    }
+
+    if (website && !isValidURL(website)) {
+      toast.error("La URL ingresada no es válida");
+      return;
+    }
+
     const formData = new FormData();
     Object.entries(editForm).forEach(([key, value]) => {
       formData.append(key, value);
@@ -72,7 +127,7 @@ function ProfilePageClient({
     const result = await updateProfile(formData);
     if (result.success) {
       setShowEditDialog(false);
-      toast.success("Profile updated successfully");
+      toast.success("Perfil actualizado correctamente");
     }
   };
 
@@ -82,7 +137,15 @@ function ProfilePageClient({
     try {
       setIsUpdatingFollow(true);
       await toggleFollow(user.id);
-      setIsFollowing(!isFollowing);
+
+      const newState = !isFollowing;
+      setIsFollowing(newState);
+
+      toast.success(
+        newState
+          ? `You are now following @${user.username}`
+          : `You unfollowed @${user.username}`
+      );
     } catch (error) {
       toast.error("Failed to update follow status");
     } finally {
@@ -96,6 +159,8 @@ function ProfilePageClient({
 
   const formattedDate = format(new Date(user.createdAt), "MMMM yyyy");
 
+  const [activeTab, setActiveTab] = useState("posts");
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="grid grid-cols-1 gap-6">
@@ -103,7 +168,7 @@ function ProfilePageClient({
           <Card className="bg-card">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center">
-                <Avatar className="w-24 h-24">
+                <Avatar className="w-24 h-24 hover:opacity-80 transition">
                   <AvatarImage src={user.image ?? "/avatar.png"} />
                 </Avatar>
                 <h1 className="mt-4 text-2xl font-bold">
@@ -113,33 +178,44 @@ function ProfilePageClient({
                 <p className="mt-2 text-sm">{user.bio}</p>
 
                 {/* PROFILE STATS */}
-                <div className="w-full mt-6">
-                  <div className="flex justify-between mb-4">
-                    <div>
-                      <div className="font-semibold">
-                        {user._count.following.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Following
-                      </div>
+                <div className="flex justify-center items-center space-x-8 mb-4">
+                  <button
+                    onClick={() => setActiveTab("following")}
+                    className="flex flex-col items-center text-center hover:underline focus:outline-none"
+                  >
+                    <div className="font-semibold">
+                      {user._count.following.toLocaleString()}
                     </div>
-                    <Separator orientation="vertical" />
-                    <div>
-                      <div className="font-semibold">
-                        {user._count.followers.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Followers
-                      </div>
+                    <div className="text-sm text-muted-foreground">
+                      Following
                     </div>
-                    <Separator orientation="vertical" />
-                    <div>
-                      <div className="font-semibold">
-                        {user._count.posts.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Posts</div>
+                  </button>
+
+                  <div className="h-6 w-px bg-muted" />
+
+                  <button
+                    onClick={() => setActiveTab("followers")}
+                    className="flex flex-col items-center text-center hover:underline focus:outline-none"
+                  >
+                    <div className="font-semibold">
+                      {user._count.followers.toLocaleString()}
                     </div>
-                  </div>
+                    <div className="text-sm text-muted-foreground">
+                      Followers
+                    </div>
+                  </button>
+
+                  <div className="h-6 w-px bg-muted" />
+
+                  <button
+                    onClick={() => setActiveTab("posts")}
+                    className="flex flex-col items-center text-center hover:underline focus:outline-none"
+                  >
+                    <div className="font-semibold">
+                      {user._count.posts.toLocaleString()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">Posts</div>
+                  </button>
                 </div>
 
                 {/* "FOLLOW & EDIT PROFILE" BUTTONS */}
@@ -201,23 +277,39 @@ function ProfilePageClient({
           </Card>
         </div>
 
-        <Tabs defaultValue="posts" className="w-full">
-          <TabsList className="w-full justify-start border-b rounded-none h-auto p-0 bg-transparent">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value)}
+          className="w-full"
+        >
+          <TabsList className="w-full flex justify-center border-b rounded-none h-auto p-0 bg-transparent overflow-x-auto whitespace-nowrap max-w-fit mx-auto scroll-smooth">
             <TabsTrigger
               value="posts"
-              className="flex items-center gap-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary
-               data-[state=active]:bg-transparent px-6 font-semibold"
+              className="flex items-center gap-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base font-medium shrink-0"
             >
               <FileTextIcon className="size-4" />
               Posts
             </TabsTrigger>
             <TabsTrigger
               value="likes"
-              className="flex items-center gap-2 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary
-               data-[state=active]:bg-transparent px-6 font-semibold"
+              className="flex items-center gap-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base font-medium shrink-0"
             >
               <HeartIcon className="size-4" />
               Likes
+            </TabsTrigger>
+            <TabsTrigger
+              value="followers"
+              className="flex items-center gap-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base font-medium shrink-0"
+            >
+              <UsersIcon className="size-4" />
+              Followers
+            </TabsTrigger>
+            <TabsTrigger
+              value="following"
+              className="flex items-center gap-1 rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 sm:px-4 py-2 text-sm sm:text-base font-medium shrink-0"
+            >
+              <UserCheckIcon className="size-4" />
+              Following
             </TabsTrigger>
           </TabsList>
 
@@ -225,7 +317,14 @@ function ProfilePageClient({
             <div className="space-y-6">
               {posts.length > 0 ? (
                 posts.map((post) => (
-                  <PostCard key={post.id} post={post} dbUserId={user.id} />
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    dbUserId={user.id}
+                    isLikedByCurrentUser={post.likes.some(
+                      (like) => like.userId === dbUserId
+                    )}
+                  />
                 ))
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
@@ -238,12 +337,110 @@ function ProfilePageClient({
           <TabsContent value="likes" className="mt-6">
             <div className="space-y-6">
               {likedPosts.length > 0 ? (
-                likedPosts.map((post) => (
-                  <PostCard key={post.id} post={post} dbUserId={user.id} />
-                ))
+                likedPosts.map((post) => {
+                  const isLikedByCurrentUser = post.likes.some(
+                    (like) => like.userId === dbUserId
+                  );
+
+                  return (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      dbUserId={dbUserId ?? ""}
+                      isLikedByCurrentUser={isLikedByCurrentUser}
+                    />
+                  );
+                })
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   No liked posts to show
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="followers" className="mt-6">
+            <div className="space-y-4">
+              {user.followers.map((follower) => (
+                <div
+                  key={follower.id}
+                  className="flex items-center gap-4 p-4 border rounded-xl bg-white dark:bg-[#0a0a0a] border-neutral-200 dark:border-neutral-800"
+                >
+                  <Link href={`/profile/${follower.username}`}>
+                    <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition">
+                      <AvatarImage src={follower.image ?? "/avatar.png"} />
+                    </Avatar>
+                  </Link>
+                  <div>
+                    <Link
+                      href={`/profile/${follower.username}`}
+                      className="font-semibold text-black dark:text-white hover:underline block"
+                    >
+                      {follower.name ?? follower.username}
+                    </Link>
+                    <Link
+                      href={`/profile/${follower.username}`}
+                      className="text-sm text-muted-foreground hover:underline block"
+                    >
+                      @{follower.username}
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="following" className="mt-6">
+            <div className="space-y-4">
+              {user.following.length > 0 ? (
+                user.following.map((followed) => (
+                  <div
+                    key={followed.id}
+                    className="flex items-center justify-between gap-4 p-4 border rounded-xl bg-white dark:bg-[#0a0a0a] border-neutral-200 dark:border-neutral-800"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Link href={`/profile/${followed.username}`}>
+                        <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition">
+                          <AvatarImage src={followed.image ?? "/avatar.png"} />
+                        </Avatar>
+                      </Link>
+                      <div>
+                        <Link
+                          href={`/profile/${followed.username}`}
+                          className="font-semibold text-black dark:text-white hover:underline block"
+                        >
+                          {followed.name ?? followed.username}
+                        </Link>
+                        <Link
+                          href={`/profile/${followed.username}`}
+                          className="text-sm text-muted-foreground hover:underline block"
+                        >
+                          @{followed.username}
+                        </Link>
+                      </div>
+                    </div>
+                    {dbUserId === user.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="border border-neutral-300 dark:border-neutral-700 text-black dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+                        onClick={async () => {
+                          try {
+                            await toggleFollow(followed.id);
+                            toast.success(`Unfollowed @${followed.username}`);
+                          } catch {
+                            toast.error("Failed to unfollow");
+                          }
+                        }}
+                      >
+                        Unfollow
+                      </Button>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Not following anyone yet
                 </div>
               )}
             </div>
