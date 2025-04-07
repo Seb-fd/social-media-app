@@ -21,6 +21,11 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Social Media App",
   description: "Social media application built with Next.js",
+  icons: [
+    { rel: "icon", url: "/favicon.ico" },
+    { rel: "shortcut icon", url: "/favicon.ico" },
+    { rel: "apple-touch-icon", url: "/favicon.ico" },
+  ],
 };
 
 export default function RootLayout({

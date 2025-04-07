@@ -1,19 +1,30 @@
+"use client";
+
 import { BellIcon, HomeIcon, UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { SignInButton, UserButton } from "@clerk/nextjs";
+import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
 import ModeToggle from "./ModeToggle";
-import { currentUser } from "@clerk/nextjs/server";
+import NotificationIndicator from "./NotificationsIndicator";
+import { usePathname } from "next/navigation";
 
-async function DesktopNavbar() {
-  const user = await currentUser();
+function DesktopNavbar() {
+  const { user } = useUser();
+  const pathname = usePathname();
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (pathname === "/") {
+      e.preventDefault(); // avoids next.js navigation
+      window.location.href = "/"; // forces full reload
+    }
+  };
 
   return (
     <div className="hidden md:flex items-center space-x-4">
       <ModeToggle />
 
       <Button variant="ghost" className="flex items-center gap-2" asChild>
-        <Link href="/">
+        <Link href="/" onClick={handleHomeClick}>
           <HomeIcon className="w-4 h-4" />
           <span className="hidden lg:inline">Home</span>
         </Link>
@@ -21,12 +32,7 @@ async function DesktopNavbar() {
 
       {user ? (
         <>
-          <Button variant="ghost" className="flex items-center gap-2" asChild>
-            <Link href="/notifications">
-              <BellIcon className="w-4 h-4" />
-              <span className="hidden lg:inline">Notifications</span>
-            </Link>
-          </Button>
+          <NotificationIndicator />
           <Button variant="ghost" className="flex items-center gap-2" asChild>
             <Link
               href={`/profile/${

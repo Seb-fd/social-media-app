@@ -45,7 +45,7 @@ export async function getUserByClerkId(clerkId: string) {
       _count: {
         select: {
           followers: true,
-          followings: true,
+          following: true,
           posts: true,
         },
       },
@@ -70,7 +70,7 @@ export async function getRandomUsers() {
 
     if (!userId) return [];
 
-    // get 3 random users excluding current user and users that already being followed
+    // get 3 random users exclude ourselves and users that we already follow
     const randomUsers = await prisma.user.findMany({
       where: {
         AND: [

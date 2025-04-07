@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { getDbUserId } from "./user.action";
 import { revalidatePath } from "next/cache";
-import { error } from "console";
+import { redirect } from "next/navigation";
 
 export async function createPost(content: string, image: string) {
   try {
@@ -33,7 +33,11 @@ export async function getPosts() {
       orderBy: {
         createdAt: "desc",
       },
-      include: {
+      select: {
+        id: true,
+        content: true,
+        image: true,
+        createdAt: true,
         author: {
           select: {
             id: true,
@@ -54,7 +58,7 @@ export async function getPosts() {
             },
           },
           orderBy: {
-            createAt: "asc",
+            createdAt: "asc",
           },
         },
         likes: {
@@ -70,9 +74,16 @@ export async function getPosts() {
         },
       },
     });
+
     return posts;
-  } catch {
-    console.log("Error in getPosts", error);
+  } catch (error: any) {
+    console.error("Error in getPosts:");
+    if (error instanceof Error) {
+      console.error("Message:", error.message);
+      console.error("Stack:", error.stack);
+    } else {
+      console.error("Error in getPosts:", JSON.stringify(error, null, 2));
+    }
     throw new Error("Failed to fetch posts");
   }
 }
@@ -133,7 +144,7 @@ export async function toggleLike(postId: string) {
       ]);
     }
 
-    revalidatePath("/");
+    revalidatePath(`/post/${postId}`);
     return { success: true };
   } catch (error) {
     console.error("Failed to toggle like:", error);
@@ -182,7 +193,7 @@ export async function createComment(postId: string, content: string) {
       return [newComment];
     });
 
-    revalidatePath(`/`);
+    revalidatePath(`/post/${postId}`);
     return { success: true, comment };
   } catch (error) {
     console.error("Failed to create comment:", error);
@@ -213,4 +224,13 @@ export async function deletePost(postId: string) {
     console.error("Failed to delete post:", error);
     return { success: false, error: "Failed to delete post" };
   }
+}
+
+export async function deletePostAndRedirect(postId: string) {
+  await prisma.post.delete({
+    where: { id: postId },
+  });
+
+  revalidatePath("/");
+  redirect("/");
 }

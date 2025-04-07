@@ -21,11 +21,25 @@ import { useState } from "react";
 import { useAuth, SignInButton, SignOutButton } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
+import NotificationIndicator from "./NotificationsIndicator";
+import { usePathname } from "next/navigation";
 
 function MobileNavbar() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const { isSignedIn } = useAuth();
   const { theme, setTheme } = useTheme();
+  const { user } = useUser();
+  const pathname = usePathname();
+
+  const handleHomeClick = (e: React.MouseEvent) => {
+    if (pathname === "/") {
+      e.preventDefault();
+      window.location.href = "/";
+    } else {
+      setShowMobileMenu(false);
+    }
+  };
 
   return (
     <div className="flex md:hidden items-center space-x-2">
@@ -56,7 +70,7 @@ function MobileNavbar() {
               className="flex items-center gap-3 justify-start"
               asChild
             >
-              <Link href="/">
+              <Link href="/" onClick={handleHomeClick}>
                 <HomeIcon className="w-4 h-4" />
                 Home
               </Link>
@@ -64,30 +78,33 @@ function MobileNavbar() {
 
             {isSignedIn ? (
               <>
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-3 justify-start"
-                  asChild
-                >
-                  <Link href="/notifications">
-                    <BellIcon className="w-4 h-4" />
-                    Notifications
-                  </Link>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="flex items-center gap-3 justify-start"
-                  asChild
-                >
-                  <Link href="/profile">
-                    <UserIcon className="w-4 h-4" />
-                    Profile
-                  </Link>
-                </Button>
+                <NotificationIndicator
+                  onClick={() => setShowMobileMenu(false)}
+                />
+                {user?.id && (
+                  <Button
+                    variant="ghost"
+                    className="flex items-center gap-3 justify-start"
+                    asChild
+                  >
+                    <Link
+                      href={`/profile/${
+                        user.username ??
+                        user.emailAddresses[0].emailAddress.split("@")[0]
+                      }`}
+                      onClick={() => setShowMobileMenu(false)}
+                    >
+                      <UserIcon className="w-4 h-4" />
+                      Profile
+                    </Link>
+                  </Button>
+                )}
+
                 <SignOutButton>
                   <Button
                     variant="ghost"
                     className="flex items-center gap-3 justify-start w-full"
+                    onClick={() => setShowMobileMenu(false)}
                   >
                     <LogOutIcon className="w-4 h-4" />
                     Logout
@@ -96,7 +113,11 @@ function MobileNavbar() {
               </>
             ) : (
               <SignInButton mode="modal">
-                <Button variant="default" className="w-full">
+                <Button
+                  variant="default"
+                  className="w-full"
+                  onClick={() => setShowMobileMenu(false)}
+                >
                   Sign In
                 </Button>
               </SignInButton>

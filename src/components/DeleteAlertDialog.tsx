@@ -4,14 +4,14 @@ import { Loader2Icon, Trash2Icon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogTrigger,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
 } from "@/components/ui/alert-dialog";
 
 interface DeleteAlertDialogProps {
@@ -34,6 +34,7 @@ export function DeleteAlertDialog({
           variant="ghost"
           size="sm"
           className="text-muted-foreground hover:text-red-500 -mr-2"
+          disabled={isDeleting}
         >
           {isDeleting ? (
             <Loader2Icon className="size-4 animate-spin" />
@@ -42,17 +43,18 @@ export function DeleteAlertDialog({
           )}
         </Button>
       </AlertDialogTrigger>
+
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={onDelete}
-            className="bg-red-500 hover:bg-red-600"
             disabled={isDeleting}
+            className="bg-red-500 hover:bg-red-600"
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>

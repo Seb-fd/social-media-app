@@ -24,13 +24,15 @@ async function Sidebar() {
               href={`/profile/${user.username}`}
               className="flex flex-col items-center justify-center"
             >
-              <Avatar className="w-20 h-20 border-2 ">
+              <Avatar className="w-20 h-20 border-2 hover:opacity-80 transition">
                 <AvatarImage src={user.image || "/avatar.png"} />
               </Avatar>
 
               <div className="mt-4 space-y-1">
-                <h3 className="font-semibold">{user.name}</h3>
-                <p className="text-sm text-muted-foreground">{user.username}</p>
+                <h3 className="font-semibold hover:underline">{user.name}</h3>
+                <p className="text-sm text-muted-foreground hover:underline">
+                  {user.username}
+                </p>
               </div>
             </Link>
 
@@ -42,7 +44,7 @@ async function Sidebar() {
               <Separator className="my-4" />
               <div className="flex justify-between">
                 <div>
-                  <p className="font-medium">{user._count.followings}</p>
+                  <p className="font-medium">{user._count.following}</p>
                   <p className="text-xs text-muted-foreground">Following</p>
                 </div>
                 <Separator orientation="vertical" />

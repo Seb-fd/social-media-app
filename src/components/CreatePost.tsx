@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "./ui/card";
 import { Avatar, AvatarImage } from "./ui/avatar";
 import { Textarea } from "./ui/textarea";
@@ -10,6 +10,8 @@ import { Button } from "./ui/button";
 import { createPost } from "@/actions/post.action";
 import toast from "react-hot-toast";
 import ImageUpload from "./ImageUpload";
+import { getUserByClerkId } from "@/actions/user.action";
+import Link from "next/link";
 
 function CreatePost() {
   const { user } = useUser();
@@ -17,6 +19,24 @@ function CreatePost() {
   const [imageUrl, setImageUrl] = useState("");
   const [isPosting, setIsPosting] = useState(false);
   const [showImageUpload, setShowImageUpload] = useState(false);
+  const [username, setUsername] = useState("");
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      if (user?.id) {
+        try {
+          const dbUser = await getUserByClerkId(user.id);
+          if (dbUser?.username) {
+            setUsername(dbUser.username);
+          }
+        } catch (err) {
+          console.error("Error fetching user:", err);
+        }
+      }
+    };
+
+    fetchUsername();
+  }, [user?.id]);
 
   const handleSubmit = async () => {
     if (!content.trim() && !imageUrl) return;
@@ -25,11 +45,9 @@ function CreatePost() {
     try {
       const result = await createPost(content, imageUrl);
       if (result?.success) {
-        // reset the form
         setContent("");
         setImageUrl("");
         setShowImageUpload(false);
-
         toast.success("Post created successfully");
       }
     } catch (error) {
@@ -45,9 +63,11 @@ function CreatePost() {
       <CardContent className="pt-6">
         <div className="space-y-4">
           <div className="flex space-x-4">
-            <Avatar className="w-10 h-10">
-              <AvatarImage src={user?.imageUrl || "/avatar.png"} />
-            </Avatar>
+            <Link href={`/profile/${username}`}>
+              <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition">
+                <AvatarImage src={user?.imageUrl || "/avatar.png"} />
+              </Avatar>
+            </Link>
             <Textarea
               placeholder="What's on your mind?"
               className="min-h-[100px] resize-none border-none focus-visible:ring-0 p-0 text-base"
@@ -107,4 +127,5 @@ function CreatePost() {
     </Card>
   );
 }
+
 export default CreatePost;

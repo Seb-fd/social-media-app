@@ -3,7 +3,7 @@
 import {
   getNotifications,
   markNotificationsAsRead,
-} from "@/actions/notifications.actions";
+} from "@/actions/notifications.action";
 import { NotificationsSkeleton } from "@/components/NotificationSkeleton";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,7 @@ import { HeartIcon, MessageCircleIcon, UserPlusIcon } from "lucide-react";
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 type Notifications = Awaited<ReturnType<typeof getNotifications>>;
 type Notification = Notifications[number];
@@ -74,8 +75,9 @@ function NotificationsPage() {
               </div>
             ) : (
               notifications.map((notification) => (
-                <div
+                <Link
                   key={notification.id}
+                  href={getNotificationLink(notification)}
                   className={`flex items-start gap-4 p-4 border-b hover:bg-muted/25 transition-colors ${
                     !notification.read ? "bg-muted/50" : ""
                   }`}
@@ -131,7 +133,7 @@ function NotificationsPage() {
                       })}
                     </p>
                   </div>
-                </div>
+                </Link>
               ))
             )}
           </ScrollArea>
@@ -140,4 +142,19 @@ function NotificationsPage() {
     </div>
   );
 }
+
+const getNotificationLink = (notification: Notification) => {
+  switch (notification.type) {
+    case "FOLLOW":
+      return `/profile/${notification.creator.username}`;
+    case "LIKE":
+    case "COMMENT":
+      return notification.comment
+        ? `/post/${notification.post?.id}#comment-${notification.comment.id}`
+        : `/post/${notification.post?.id}`;
+    default:
+      return "#";
+  }
+};
+
 export default NotificationsPage;

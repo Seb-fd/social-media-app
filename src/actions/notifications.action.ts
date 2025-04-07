@@ -32,7 +32,7 @@ export async function getNotifications() {
           select: {
             id: true,
             content: true,
-            createAt: true,
+            createdAt: true,
           },
         },
       },
@@ -65,5 +65,25 @@ export async function markNotificationsAsRead(notificationIds: string[]) {
   } catch (error) {
     console.error("Error marking notifications as read:", error);
     return { success: false };
+  }
+}
+
+// 👇 ESTA ES LA NUEVA FUNCIÓN
+export async function getUnreadNotificationCount() {
+  try {
+    const userId = await getDbUserId();
+    if (!userId) return 0;
+
+    const count = await prisma.notification.count({
+      where: {
+        userId,
+        read: false,
+      },
+    });
+
+    return count;
+  } catch (error) {
+    console.error("Error fetching unread notification count:", error);
+    return 0;
   }
 }

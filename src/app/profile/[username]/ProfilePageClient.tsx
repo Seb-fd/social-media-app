@@ -117,7 +117,7 @@ function ProfilePageClient({
                   <div className="flex justify-between mb-4">
                     <div>
                       <div className="font-semibold">
-                        {user._count.followings.toLocaleString()}
+                        {user._count.following.toLocaleString()}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         Following

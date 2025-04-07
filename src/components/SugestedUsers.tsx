@@ -23,18 +23,20 @@ async function SugestedUsers() {
             >
               <div className="flex items-center gap-1">
                 <Link href={`/profile/${user.username}`}>
-                  <Avatar>
+                  <Avatar className="hover:opacity-80 transition">
                     <AvatarImage src={user.image ?? "/avatar.png"} />
                   </Avatar>
                 </Link>
                 <div className="text-xs">
                   <Link
                     href={`/profile/${user.username}`}
-                    className="font-medium cursor-pointer"
+                    className="font-medium cursor-pointer hover:underline"
                   >
                     {user.name}
                   </Link>
-                  <p className="text-muted-foreground">@{user.username}</p>
+                  <p className="text-muted-foreground hover:underline">
+                    @{user.username}
+                  </p>
                   <p className="text-muted-foreground">
                     {user._count.followers} followers
                   </p>

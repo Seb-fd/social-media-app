@@ -21,7 +21,7 @@ export async function getProfileByUsername(username: string) {
         _count: {
           select: {
             followers: true,
-            followings: true,
+            following: true,
             posts: true,
           },
         },
@@ -62,7 +62,7 @@ export async function getUserPosts(userId: string) {
             },
           },
           orderBy: {
-            createAt: "asc",
+            createdAt: "asc",
           },
         },
         likes: {
@@ -120,7 +120,7 @@ export async function getUserLikedPosts(userId: string) {
             },
           },
           orderBy: {
-            createAt: "asc",
+            createdAt: "asc",
           },
         },
         likes: {

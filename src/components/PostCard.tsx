@@ -22,6 +22,7 @@ import {
   SendIcon,
 } from "lucide-react";
 import { Textarea } from "./ui/textarea";
+import { deleteComment } from "@/actions/comment.action";
 
 type Posts = Awaited<ReturnType<typeof getPosts>>;
 type Post = Posts[number];
@@ -37,6 +38,9 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
   );
   const [optimisticLikes, setOptmisticLikes] = useState(post._count.likes);
   const [showComments, setShowComments] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
+    null
+  );
 
   const handleLike = async () => {
     if (isLiking) return;
@@ -83,28 +87,45 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
     }
   };
 
+  const handleDeleteComment = async (commentId: string) => {
+    if (deletingCommentId) return;
+    setDeletingCommentId(commentId);
+    try {
+      const res = await deleteComment(commentId);
+      if (res.success) toast.success("Comment deleted");
+      else throw new Error(res.error);
+    } catch (error) {
+      toast.error("Failed to delete comment");
+    } finally {
+      setDeletingCommentId(null);
+    }
+  };
+
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-4 sm:p-6">
         <div className="space-y-4">
           <div className="flex space-x-3 sm:space-x-4">
             <Link href={`/profile/${post.author.username}`}>
-              <Avatar className="size-8 sm:w-10 sm:h-10">
+              <Avatar className="size-8 sm:w-10 sm:h-10 hover:opacity-80 transition">
                 <AvatarImage src={post.author.image ?? "/avatar.png"} />
               </Avatar>
             </Link>
-            {/* post header and text content */}
+
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 truncate">
                   <Link
                     href={`/profile/${post.author.username}`}
-                    className="font-semibold truncate"
+                    className="font-semibold truncate hover:underline"
                   >
                     {post.author.name}
                   </Link>
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <Link href={`/profile/${post.author.username}`}>
+                    <Link
+                      className="hover:underline"
+                      href={`/profile/${post.author.username}`}
+                    >
                       @{post.author.username}
                     </Link>
                     <span>•</span>
@@ -113,7 +134,6 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                     </span>
                   </div>
                 </div>
-                {/* Check if current user is the post author */}
                 {dbUserId === post.author.id && (
                   <DeleteAlertDialog
                     isDeleting={isDeleting}
@@ -121,12 +141,19 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
                   />
                 )}
               </div>
-              <p className="mt-2 text-sm text-foreground break-words">
-                {post.content}
-              </p>
+              <div className="mt-2 text-sm break-words space-y-1 text-foreground">
+                <p>{post.content}</p>
+
+                <Link
+                  href={`/post/${post.id}`}
+                  className="text-foreground hover:underline text-sm font-medium inline-block "
+                >
+                  View full post
+                </Link>
+              </div>
             </div>
           </div>
-          {/* Post immage */}
+
           {post.image && (
             <div className="rounded-lg overflow-hidden">
               <img
@@ -136,7 +163,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
               />
             </div>
           )}
-          {/* Like and Comment buttons */}
+
           <div className="flex items-center pt-2 space-x-4">
             {user ? (
               <Button
@@ -183,32 +210,57 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
               <span>{post.comments.length}</span>
             </Button>
           </div>
-          {/* Comments section */}
+
           {showComments && (
             <div className="space-y-4 pt-4 border-t">
               <div className="space-y-4">
-                {/* Display comments */}
                 {post.comments.map((comment) => (
                   <div key={comment.id} className="flex space-x-3">
-                    <Avatar className="size-8 flex-shrink-0">
-                      <AvatarImage
-                        src={comment.author.image ?? "/avatar.png"}
-                      />
-                    </Avatar>
+                    <Link href={`/profile/${comment.author.username}`}>
+                      <Avatar className="size-8 flex-shrink-0 hover:opacity-80 transition">
+                        <AvatarImage
+                          src={comment.author.image ?? "/avatar.png"}
+                        />
+                      </Avatar>
+                    </Link>
                     <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="font-medium text-sm">
-                          {comment.author.name}
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          @{comment.author.username}
-                        </span>
-                        <span className="text-sm text-muted-foreground">·</span>
-                        <span className="text-sm text-muted-foreground">
-                          {formatDistanceToNow(new Date(comment.createAt))} ago
-                        </span>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <Link
+                              href={`/profile/${comment.author.username}`}
+                              className="font-medium text-sm hover:underline"
+                            >
+                              {comment.author.name}
+                            </Link>
+                            <Link
+                              href={`/profile/${comment.author.username}`}
+                              className="text-sm text-muted-foreground hover:underline"
+                            >
+                              @{comment.author.username}
+                            </Link>
+                            <span className="text-sm text-muted-foreground">
+                              ·
+                            </span>
+                            <span className="text-sm text-muted-foreground">
+                              {formatDistanceToNow(new Date(comment.createdAt))}{" "}
+                              ago
+                            </span>
+                          </div>
+                          <p className="text-sm break-words">
+                            {comment.content}
+                          </p>
+                        </div>
+
+                        {dbUserId === comment.author.id && (
+                          <DeleteAlertDialog
+                            isDeleting={deletingCommentId === comment.id}
+                            onDelete={() => handleDeleteComment(comment.id)}
+                            title="Delete Comment"
+                            description="Are you sure you want to delete this comment? This action cannot be undone."
+                          />
+                        )}
                       </div>
-                      <p className="text-sm break-words">{comment.content}</p>
                     </div>
                   </div>
                 ))}
@@ -216,7 +268,7 @@ function PostCard({ post, dbUserId }: { post: Post; dbUserId: string | null }) {
 
               {user ? (
                 <div className="flex space-x-3">
-                  <Avatar className="size-8 flex-shrink-0">
+                  <Avatar className="size-8 flex-shrink-0 hover:opacity-80 transition">
                     <AvatarImage src={user?.imageUrl || "/avatar.png"} />
                   </Avatar>
                   <div className="flex-1">
