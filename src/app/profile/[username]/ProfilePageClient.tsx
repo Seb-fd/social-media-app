@@ -103,19 +103,18 @@ function ProfilePageClient({
   const handleEditSubmit = async () => {
     const { name, bio, website } = editForm;
 
-    // Validaciones
     if (name.length > 50) {
-      toast.error("El nombre no puede tener más de 50 caracteres");
+      toast.error("Name can not contain more than 50 characters.");
       return;
     }
 
     if (bio.length > 160) {
-      toast.error("La biografía no puede tener más de 160 caracteres");
+      toast.error("Bio can not contain more than 160 characters.");
       return;
     }
 
     if (website && !isValidURL(website)) {
-      toast.error("La URL ingresada no es válida");
+      toast.error("The URL is not valid.");
       return;
     }
 
@@ -127,7 +126,7 @@ function ProfilePageClient({
     const result = await updateProfile(formData);
     if (result.success) {
       setShowEditDialog(false);
-      toast.success("Perfil actualizado correctamente");
+      toast.success("Profile updated successfully.");
     }
   };
 
