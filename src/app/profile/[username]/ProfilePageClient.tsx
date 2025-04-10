@@ -37,8 +37,7 @@ import {
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import { getPosts } from "@/actions/post.action";
-import { currentUser } from "@clerk/nextjs/server";
+import { UploadButton } from "@/lib/uploadthing";
 
 type User = NonNullable<Awaited<ReturnType<typeof getProfileByUsername>>>;
 
@@ -454,6 +453,40 @@ function ProfilePageClient({
               <DialogTitle>Edit Profile</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
+              {/* ✅ NUEVO: Selector de imagen de perfil */}
+              <div className="space-y-2">
+                <Label>Profile Image</Label>
+                <UploadButton
+                  endpoint="profileImage"
+                  onClientUploadComplete={async (res) => {
+                    const imageUrl = res?.[0]?.url;
+                    if (!imageUrl) {
+                      toast.error("Upload failed");
+                      return;
+                    }
+
+                    try {
+                      const blob = await fetch(imageUrl).then((r) => r.blob());
+
+                      await currentUser?.setProfileImage({ file: blob });
+
+                      await fetch("/api/profile/image", {
+                        method: "POST",
+                        body: JSON.stringify({ imageUrl }),
+                      });
+
+                      toast.success("Profile image updated");
+                    } catch (err) {
+                      toast.error("Failed to update profile image");
+                      console.error(err);
+                    }
+                  }}
+                  onUploadError={(err) => {
+                    toast.error("Upload error: " + err.message);
+                  }}
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label>Name</Label>
                 <Input
@@ -500,6 +533,7 @@ function ProfilePageClient({
                 />
               </div>
             </div>
+
             <div className="flex justify-end gap-3">
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>

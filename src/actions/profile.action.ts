@@ -5,6 +5,16 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getDbUserId } from "./user.action";
 
+export async function updateProfileImage(url: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  return await prisma.user.update({
+    where: { clerkId: userId },
+    data: { image: url },
+  });
+}
+
 export async function getProfileByUsername(username: string) {
   try {
     const user = await prisma.user.findUnique({
