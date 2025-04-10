@@ -160,6 +160,8 @@ function ProfilePageClient({
 
   const [activeTab, setActiveTab] = useState("posts");
 
+  if (dbUserId === null) return null; //This stops the tab rendering until dbUserId is ready
+
   return (
     <div className="max-w-3xl mx-auto">
       <div className="grid grid-cols-1 gap-6">
@@ -319,7 +321,7 @@ function ProfilePageClient({
                   <PostCard
                     key={post.id}
                     post={post}
-                    dbUserId={user.id}
+                    dbUserId={dbUserId}
                     isLikedByCurrentUser={post.likes.some(
                       (like) => like.userId === dbUserId
                     )}
@@ -345,7 +347,7 @@ function ProfilePageClient({
                     <PostCard
                       key={post.id}
                       post={post}
-                      dbUserId={dbUserId ?? ""}
+                      dbUserId={dbUserId}
                       isLikedByCurrentUser={isLikedByCurrentUser}
                     />
                   );

@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 type DeleteCommentButtonProps = {
   commentId: string;
   postId: string;
-  onDelete?: () => void; // opcional
+  onDelete?: () => void;
 };
 
 export function DeleteCommentButton({
@@ -31,9 +31,9 @@ export function DeleteCommentButton({
           if (res.success) {
             toast.success("Comment deleted successfully");
             if (onDelete) {
-              onDelete(); // actualiza estado en CommentsList si se provee
+              onDelete();
             } else {
-              router.refresh(); // fallback si no se pasa onDelete
+              router.refresh();
             }
           } else {
             toast.error("Failed to delete comment");

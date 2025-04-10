@@ -38,6 +38,7 @@ type Post = Posts[number];
 function PostCard({
   post,
   dbUserId,
+  isLikedByCurrentUser,
   onDeletePost,
   onDeleteComment,
 }: PostCardProps) {
@@ -46,9 +47,8 @@ function PostCard({
   const [isCommenting, setIsCommenting] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [hasLiked, setHasLiked] = useState(
-    post.likes.some((like) => like.userId === dbUserId)
-  );
+  const [hasLiked, setHasLiked] = useState(isLikedByCurrentUser);
+
   const [optimisticLikes, setOptmisticLikes] = useState(post._count.likes);
   const [showComments, setShowComments] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState<string | null>(
