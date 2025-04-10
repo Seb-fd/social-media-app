@@ -68,7 +68,6 @@ export async function markNotificationsAsRead(notificationIds: string[]) {
   }
 }
 
-// 👇 ESTA ES LA NUEVA FUNCIÓN
 export async function getUnreadNotificationCount() {
   try {
     const userId = await getDbUserId();

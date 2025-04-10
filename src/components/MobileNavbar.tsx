@@ -17,11 +17,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useState } from "react";
-import { useAuth, SignInButton, SignOutButton } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { useAuth, SignInButton, SignOutButton, useUser } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useUser } from "@clerk/nextjs";
 import NotificationIndicator from "./NotificationsIndicator";
 import { usePathname } from "next/navigation";
 
@@ -31,6 +30,7 @@ function MobileNavbar() {
   const { theme, setTheme } = useTheme();
   const { user } = useUser();
   const pathname = usePathname();
+  const [username, setUsername] = useState<string | null>(null);
 
   const handleHomeClick = (e: React.MouseEvent) => {
     if (pathname === "/") {
@@ -40,6 +40,22 @@ function MobileNavbar() {
       setShowMobileMenu(false);
     }
   };
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const res = await fetch("/api/get-username");
+        const data = await res.json();
+        setUsername(data.username);
+      } catch (err) {
+        console.error("Failed to fetch username", err);
+      }
+    };
+
+    if (user) {
+      fetchUsername();
+    }
+  }, [user]);
 
   return (
     <div className="flex md:hidden items-center space-x-2">
@@ -81,17 +97,15 @@ function MobileNavbar() {
                 <NotificationIndicator
                   onClick={() => setShowMobileMenu(false)}
                 />
-                {user?.id && (
+
+                {username && (
                   <Button
                     variant="ghost"
                     className="flex items-center gap-3 justify-start"
                     asChild
                   >
                     <Link
-                      href={`/profile/${
-                        user.username ??
-                        user.emailAddresses[0].emailAddress.split("@")[0]
-                      }`}
+                      href={`/profile/${username}`}
                       onClick={() => setShowMobileMenu(false)}
                     >
                       <UserIcon className="w-4 h-4" />

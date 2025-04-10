@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { BellIcon, HomeIcon, UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -11,11 +12,28 @@ import { usePathname } from "next/navigation";
 function DesktopNavbar() {
   const { user } = useUser();
   const pathname = usePathname();
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const res = await fetch("/api/get-username");
+        const data = await res.json();
+        setUsername(data.username);
+      } catch (err) {
+        console.error("Failed to fetch username", err);
+      }
+    };
+
+    if (user) {
+      fetchUsername();
+    }
+  }, [user]);
 
   const handleHomeClick = (e: React.MouseEvent) => {
     if (pathname === "/") {
-      e.preventDefault(); // avoids next.js navigation
-      window.location.href = "/"; // forces full reload
+      e.preventDefault(); // avoid next.js transition
+      window.location.href = "/"; // force reload
     }
   };
 
@@ -30,28 +48,24 @@ function DesktopNavbar() {
         </Link>
       </Button>
 
-      {user ? (
+      {user && username ? (
         <>
           <NotificationIndicator />
           <Button variant="ghost" className="flex items-center gap-2" asChild>
-            <Link
-              href={`/profile/${
-                user.username ??
-                user.emailAddresses[0].emailAddress.split("@")[0]
-              }`}
-            >
+            <Link href={`/profile/${username}`}>
               <UserIcon className="w-4 h-4" />
               <span className="hidden lg:inline">Profile</span>
             </Link>
           </Button>
           <UserButton />
         </>
-      ) : (
+      ) : !user ? (
         <SignInButton mode="modal">
           <Button variant="default">Sign In</Button>
         </SignInButton>
-      )}
+      ) : null}
     </div>
   );
 }
+
 export default DesktopNavbar;
