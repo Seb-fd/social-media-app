@@ -48,7 +48,10 @@ export default async function PostPage({ params }: Props) {
         <div className="flex space-x-3 sm:space-x-4">
           <Link href={`/profile/${post.author.username}`}>
             <Avatar className="size-8 sm:w-10 sm:h-10 hover:opacity-80 transition">
-              <AvatarImage src={post.author.image ?? "/avatar.png"} />
+              <AvatarImage
+                className="object-cover"
+                src={post.author.image ?? "/avatar.png"}
+              />
             </Avatar>
           </Link>
 

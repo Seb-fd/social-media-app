@@ -65,7 +65,10 @@ function CreatePost() {
           <div className="flex space-x-4">
             <Link href={`/profile/${username}`}>
               <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition">
-                <AvatarImage src={user?.imageUrl || "/avatar.png"} />
+                <AvatarImage
+                  className="object-cover"
+                  src={user?.imageUrl || "/avatar.png"}
+                />
               </Avatar>
             </Link>
             <Textarea

@@ -40,7 +40,10 @@ const CommentsList: React.FC<CommentsListProps> = ({
         >
           <Link href={`/profile/${comment.author.username}`}>
             <Avatar className="size-8 flex-shrink-0 hover:opacity-80 transition">
-              <AvatarImage src={comment.author.image ?? "/avatar.png"} />
+              <AvatarImage
+                className="object-cover"
+                src={comment.author.image ?? "/avatar.png"}
+              />
             </Avatar>
           </Link>
 
