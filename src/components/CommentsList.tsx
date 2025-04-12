@@ -32,7 +32,7 @@ const CommentsList: React.FC<CommentsListProps> = ({
   postAuthorId,
 }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {comments.map((comment) => (
         <div
           key={comment.id}

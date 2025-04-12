@@ -21,7 +21,7 @@ type Notification = Notifications[number];
 const getNotificationIcon = (type: string) => {
   switch (type) {
     case "LIKE":
-      return <HeartIcon className="size-4 text-red-500" />;
+      return <HeartIcon className="size-4 text-red-500 fill-current" />;
     case "COMMENT":
       return <MessageCircleIcon className="size-4 text-blue-500" />;
     case "FOLLOW":
