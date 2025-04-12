@@ -169,10 +169,7 @@ function ProfilePageClient({
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center">
                 <Avatar className="w-24 h-24 hover:opacity-80 transition">
-                  <AvatarImage
-                    className="object-cover"
-                    src={user.image ?? "/avatar.png"}
-                  />
+                  <AvatarImage src={user.image ?? "/avatar.png"} />
                 </Avatar>
                 <h1 className="mt-4 text-2xl font-bold">
                   {user.name ?? user.username}
@@ -371,10 +368,7 @@ function ProfilePageClient({
                 >
                   <Link href={`/profile/${follower.username}`}>
                     <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition">
-                      <AvatarImage
-                        className="object-cover"
-                        src={follower.image ?? "/avatar.png"}
-                      />
+                      <AvatarImage src={follower.image ?? "/avatar.png"} />
                     </Avatar>
                   </Link>
                   <div>
@@ -407,10 +401,7 @@ function ProfilePageClient({
                     <div className="flex items-center gap-4">
                       <Link href={`/profile/${followed.username}`}>
                         <Avatar className="w-10 h-10 cursor-pointer hover:opacity-80 transition">
-                          <AvatarImage
-                            className="object-cover"
-                            src={followed.image ?? "/avatar.png"}
-                          />
+                          <AvatarImage src={followed.image ?? "/avatar.png"} />
                         </Avatar>
                       </Link>
                       <div>
