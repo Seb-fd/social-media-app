@@ -57,6 +57,16 @@ const config: Config = withUt({
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      keyframes: {
+        pulseHighlight: {
+          "0%, 100%": { backgroundColor: "hsl(var(--pulse-bg-start))" },
+          "50%": { backgroundColor: "hsl(var(--pulse-bg-end))" },
+        },
+      },
+
+      animation: {
+        "pulse-highlight": "pulseHighlight 1.5s ease-in-out infinite",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

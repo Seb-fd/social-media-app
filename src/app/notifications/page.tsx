@@ -94,7 +94,9 @@ function NotificationsPage() {
                 <div
                   key={notification.id}
                   className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 border-b transition-colors ${
-                    !notification.read ? "bg-muted/50" : ""
+                    !notification.read
+                      ? "animate-pulse-highlight text-foreground rounded-md"
+                      : ""
                   }`}
                 >
                   <div className="flex-1 w-full">
@@ -144,7 +146,7 @@ function NotificationsPage() {
                     </div>
                     <Link
                       href={getNotificationLink(notification)}
-                      className="block pl-0 space-y-2 rounded-md hover:bg-muted/25 p-2 transition-colors"
+                      className="block pl-0 space-y-2 rounded-md hover:bg-gray-700/20 dark:hover:bg-gray-300/5 hover:text-black dark:hover:text-white p-2 transition-colors"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="text-sm text-muted-foreground">
