@@ -86,3 +86,16 @@ export async function getUnreadNotificationCount() {
     return 0;
   }
 }
+
+export async function deleteNotification(notificationId: string) {
+  try {
+    await prisma.notification.delete({
+      where: { id: notificationId },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete notification", error);
+    return { success: false };
+  }
+}
