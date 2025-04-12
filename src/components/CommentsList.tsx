@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
+import { formatDistanceToNow } from "date-fns";
 import { DeleteCommentButton } from "@/components/DeleteCommentButton";
+import { Avatar, AvatarImage } from "@/components/ui/avatar";
 
 interface CommentWithAuthor {
   id: string;
@@ -12,6 +13,7 @@ interface CommentWithAuthor {
   author: {
     id: string;
     username: string;
+    name?: string | null;
     image?: string | null;
   };
 }
@@ -30,50 +32,53 @@ const CommentsList: React.FC<CommentsListProps> = ({
   postAuthorId,
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {comments.map((comment) => (
         <div
           key={comment.id}
-          className="bg-white border border-zinc-300 text-black 
-            p-4 rounded-xl shadow-sm transition-all
-            hover:bg-zinc-100
-            dark:bg-zinc-900 dark:border-zinc-800 dark:text-white dark:hover:bg-zinc-800"
+          className="flex space-x-3 border border-border p-4 rounded-xl"
         >
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-3">
-              {comment.author.image && (
-                <Link href={`/profile/${comment.author.username}`}>
-                  <img
-                    src={comment.author.image}
-                    alt={comment.author.username}
-                    className="w-8 h-8 rounded-full hover:opacity-80 transition"
-                  />
-                </Link>
-              )}
-              <div className="flex flex-col">
-                <Link
-                  href={`/profile/${comment.author.username}`}
-                  className="font-medium text-sm text-black dark:text-white hover:underline"
-                >
-                  {comment.author.username}
-                </Link>
-              </div>
-            </div>
+          <Link href={`/profile/${comment.author.username}`}>
+            <Avatar className="size-8 flex-shrink-0 hover:opacity-80 transition">
+              <AvatarImage src={comment.author.image ?? "/avatar.png"} />
+            </Avatar>
+          </Link>
 
-            {(dbUserId === comment.author.id || dbUserId === postAuthorId) && (
-              <div className="ml-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start">
+              <div>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <Link
+                    href={`/profile/${comment.author.username}`}
+                    className="font-medium text-sm hover:underline"
+                  >
+                    {comment.author.name ?? comment.author.username}
+                  </Link>
+                  <Link
+                    href={`/profile/${comment.author.username}`}
+                    className="text-sm text-muted-foreground hover:underline"
+                  >
+                    @{comment.author.username}
+                  </Link>
+                  <span className="text-sm text-muted-foreground">·</span>
+                  <span className="text-sm text-muted-foreground">
+                    {formatDistanceToNow(new Date(comment.createdAt))} ago
+                  </span>
+                </div>
+                <p className="text-sm break-words text-foreground mt-1">
+                  {comment.content}
+                </p>
+              </div>
+
+              {dbUserId === comment.author.id && (
                 <DeleteCommentButton
                   commentId={comment.id}
                   postId={comment.postId}
                   onDelete={() => onDeleteComment(comment.id)}
                 />
-              </div>
-            )}
+              )}
+            </div>
           </div>
-
-          <p className="mt-2 text-zinc-700 dark:text-zinc-300 whitespace-pre-line">
-            {comment.content}
-          </p>
         </div>
       ))}
     </div>
