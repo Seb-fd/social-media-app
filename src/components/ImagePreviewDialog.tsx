@@ -21,19 +21,11 @@ export function ImagePreviewDialog({ src, alt, children }: Props) {
   const [open, setOpen] = useState(false);
   const { theme } = useTheme();
 
-  const backgroundColor =
-    theme === "light" ? "bg-transparent" : "bg-transparent";
-
   const handleDialogClose = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       setOpen(false);
     }
   };
-
-  const imageMargin =
-    theme === "light"
-      ? "border-2 border-zinc-900/20"
-      : "border-2 border-white/40";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -47,7 +39,7 @@ export function ImagePreviewDialog({ src, alt, children }: Props) {
       </DialogTrigger>
 
       <DialogContent
-        className={`${backgroundColor} p-0 border-none max-w-5xl w-full h-full flex items-center justify-center`}
+        className="bg-transparent p-0 border-none max-w-full w-full h-full flex items-center justify-center"
         onClick={handleDialogClose}
       >
         <DialogClose asChild>
@@ -65,7 +57,7 @@ export function ImagePreviewDialog({ src, alt, children }: Props) {
             alt={alt ?? "Post image"}
             width={1000}
             height={800}
-            className={`rounded-lg object-contain max-h-[90vh] w-auto h-auto ${imageMargin} p-4`} // Se agregó el margen y padding
+            className="rounded-lg object-contain max-h-[90vh] w-auto h-auto border-2 p-4"
           />
         </div>
       </DialogContent>
