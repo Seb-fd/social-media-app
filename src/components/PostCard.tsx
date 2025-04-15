@@ -13,6 +13,7 @@ import { Button } from "./ui/button";
 import { HeartIcon, MessageCircleIcon } from "lucide-react";
 import { deleteComment } from "@/actions/comment.action";
 import { CommentForm } from "./CommentForm";
+import { ImagePreviewDialog } from "./ImagePreviewDialog";
 
 type PostCardProps = {
   post: Post;
@@ -141,13 +142,15 @@ function PostCard({
 
           {/* Post Image */}
           {post.image && (
-            <div className="rounded-lg overflow-hidden">
-              <img
-                src={post.image}
-                alt="Post content"
-                className="w-full h-auto object-cover"
-              />
-            </div>
+            <ImagePreviewDialog src={post.image} alt="Post image">
+              <div className="rounded-lg overflow-hidden">
+                <img
+                  src={post.image}
+                  alt="Post image"
+                  className="w-full h-auto object-cover"
+                />
+              </div>
+            </ImagePreviewDialog>
           )}
 
           {/* Like & Comment buttons */}

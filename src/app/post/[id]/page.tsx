@@ -12,6 +12,7 @@ import { getDbUserId } from "@/actions/user.action";
 import { DeletePostButton } from "@/components/DeletePostButton";
 import Link from "next/link";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { ImagePreviewDialog } from "@/components/ImagePreviewDialog";
 
 type Props = {
   params: { id: string };
@@ -83,13 +84,15 @@ export default async function PostPage({ params }: Props) {
         <p className="text-lg whitespace-pre-line">{post.content}</p>
 
         {post.image && (
-          <Image
-            src={post.image}
-            alt="Post image"
-            width={600}
-            height={400}
-            className="rounded-lg border border-border"
-          />
+          <ImagePreviewDialog src={post.image} alt="Post image">
+            <div className="rounded-lg overflow-hidden">
+              <img
+                src={post.image}
+                alt="Post image"
+                className="w-full h-auto object-cover"
+              />
+            </div>
+          </ImagePreviewDialog>
         )}
 
         <div className="flex items-center gap-4">
