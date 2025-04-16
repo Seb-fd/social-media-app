@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/dialog";
 import Image from "next/image";
 import { X } from "lucide-react";
-import { useTheme } from "next-themes";
 
 type Props = {
   src: string;
@@ -19,7 +18,6 @@ type Props = {
 
 export function ImagePreviewDialog({ src, alt, children }: Props) {
   const [open, setOpen] = useState(false);
-  const { theme } = useTheme();
 
   const handleDialogClose = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
