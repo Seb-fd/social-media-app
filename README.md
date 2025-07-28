@@ -7,7 +7,7 @@ Designed to offer a seamless user experience with modern authentication, respons
 
 ## 📸 Preview
 
-![Social Media App Preview](./public/preview.jpg)
+![Social Media App Preview](./public/preview.png)
 
 ---
 
