@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
 import { DeleteCommentButton } from "@/components/DeleteCommentButton";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { UserAvatar, UserAvatarLink } from "./UserAvatar";
+import { TimeAgo } from "./TimeAgo";
 
 interface CommentWithAuthor {
   id: string;
@@ -38,11 +38,11 @@ const CommentsList: React.FC<CommentsListProps> = ({
           key={comment.id}
           className="flex space-x-3 border border-border p-4 rounded-xl"
         >
-          <Link href={`/profile/${comment.author.username}`}>
-            <Avatar className="size-8 flex-shrink-0 hover:opacity-80 transition">
-              <AvatarImage src={comment.author.image ?? "/avatar.png"} />
-            </Avatar>
-          </Link>
+          <UserAvatarLink
+            username={comment.author.username}
+            image={comment.author.image}
+            size="sm"
+          />
 
           <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start">
@@ -61,9 +61,10 @@ const CommentsList: React.FC<CommentsListProps> = ({
                     @{comment.author.username}
                   </Link>
                   <span className="text-sm text-muted-foreground">·</span>
-                  <span className="text-sm text-muted-foreground">
-                    {formatDistanceToNow(new Date(comment.createdAt))} ago
-                  </span>
+                  <TimeAgo
+                    date={comment.createdAt}
+                    className="text-sm text-muted-foreground"
+                  />
                 </div>
                 <p className="text-sm break-words text-foreground mt-1">
                   {comment.content}

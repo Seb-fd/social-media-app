@@ -3,9 +3,10 @@ import {
   getUserLikedPosts,
   getUserPosts,
   isFollowing,
-  getFollowers,
   getFollowing,
 } from "@/actions/profile.action";
+import { getDbUserId } from "@/actions/user.action";
+import { currentUser } from "@clerk/nextjs/server";
 import { notFound } from "next/navigation";
 import ProfilePageClient from "./ProfilePageClient";
 
@@ -27,14 +28,21 @@ async function ProfilePageServer({ params }: { params: { username: string } }) {
   const user = await getProfileByUsername(params.username);
   if (!user) notFound();
 
-  const [posts, likedPosts, isCurrentUserFollowing, followers, following] =
+  const currentClerkUser = await currentUser();
+  const currentDbUserId = currentClerkUser ? await getDbUserId().catch(() => null) : null;
+
+  const [posts, likedPosts, isCurrentUserFollowing] =
     await Promise.all([
       getUserPosts(user.id),
       getUserLikedPosts(user.id),
       isFollowing(user.id),
-      getFollowers(user.id),
-      getFollowing(user.id),
     ]);
+
+  let currentUserFollowingIds: string[] = [];
+  if (currentDbUserId) {
+    const currentUserFollowing = await getFollowing(currentDbUserId);
+    currentUserFollowingIds = currentUserFollowing.map((f) => f.id);
+  }
 
   return (
     <ProfilePageClient
@@ -42,6 +50,7 @@ async function ProfilePageServer({ params }: { params: { username: string } }) {
       posts={posts}
       likedPosts={likedPosts}
       isFollowing={isCurrentUserFollowing}
+      currentUserFollowingIds={currentUserFollowingIds}
     />
   );
 }

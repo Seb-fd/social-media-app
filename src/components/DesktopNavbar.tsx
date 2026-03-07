@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { BellIcon, HomeIcon, UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 import ModeToggle from "./ModeToggle";
 import NotificationIndicator from "./NotificationsIndicator";
 import { usePathname } from "next/navigation";
@@ -60,9 +60,14 @@ function DesktopNavbar() {
           <UserButton />
         </>
       ) : !user ? (
-        <SignInButton mode="modal">
-          <Button variant="default">Sign In</Button>
-        </SignInButton>
+        <div className="space-x-4">
+          <SignInButton mode="modal">
+            <Button variant="default">Login</Button>
+          </SignInButton>
+          <SignUpButton mode="modal">
+            <Button variant="default">Sign Up</Button>
+          </SignUpButton>
+        </div>
       ) : null}
     </div>
   );

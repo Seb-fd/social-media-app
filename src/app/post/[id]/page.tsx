@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { deleteComment } from "@/actions/comment.action";
 import { revalidatePath } from "next/cache";
 import Image from "next/image";
-import { formatDistanceToNow } from "date-fns";
 import { CommentForm } from "@/components/CommentForm";
 import CommentsList from "@/components/CommentsList";
 import { ScrollToComment } from "@/components/ScrollToComment";
@@ -11,8 +10,9 @@ import LikeButton from "@/components/LikeButton";
 import { getDbUserId } from "@/actions/user.action";
 import { DeletePostButton } from "@/components/DeletePostButton";
 import Link from "next/link";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { ImagePreviewDialog } from "@/components/ImagePreviewDialog";
+import { UserAvatar, UserAvatarLink } from "@/components/UserAvatar";
+import { TimeAgo } from "@/components/TimeAgo";
 
 type Props = {
   params: { id: string };
@@ -47,11 +47,11 @@ export default async function PostPage({ params }: Props) {
     <div className="max-w-3xl mx-auto px-4 py-8 space-y-8">
       <div className="bg-background border border-border text-foreground p-6 rounded-2xl shadow-lg space-y-4 transition-colors">
         <div className="flex space-x-3 sm:space-x-4">
-          <Link href={`/profile/${post.author.username}`}>
-            <Avatar className="size-8 sm:w-10 sm:h-10 hover:opacity-80 transition">
-              <AvatarImage src={post.author.image ?? "/avatar.png"} />
-            </Avatar>
-          </Link>
+          <UserAvatarLink
+            username={post.author.username}
+            image={post.author.image}
+            size="md"
+          />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between">
@@ -70,9 +70,7 @@ export default async function PostPage({ params }: Props) {
                     @{post.author.username}
                   </Link>
                   <span>•</span>
-                  <span>
-                    {formatDistanceToNow(new Date(post.createdAt))} ago
-                  </span>
+                  <TimeAgo date={post.createdAt} />
                 </div>
               </div>
 

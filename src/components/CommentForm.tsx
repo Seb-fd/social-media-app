@@ -7,8 +7,8 @@ import { createComment } from "@/actions/comment.action";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { SendIcon, LogInIcon } from "lucide-react";
+import { UserAvatar, UserAvatarLink } from "./UserAvatar";
 
 export function CommentForm({ postId }: { postId: string }) {
   const { user } = useUser();
@@ -48,9 +48,13 @@ export function CommentForm({ postId }: { postId: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="flex space-x-3">
-      <Avatar className="size-8 flex-shrink-0 hover:opacity-80 transition">
-        <AvatarImage src={user?.imageUrl || "/avatar.png"} />
-      </Avatar>
+      {user && (
+        <UserAvatarLink
+          username={user.username || ""}
+          image={user.imageUrl}
+          size="sm"
+        />
+      )}
       <div className="flex-1">
         <Textarea
           placeholder="Write a comment..."

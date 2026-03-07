@@ -27,9 +27,11 @@ export async function createPost(content: string, image: string) {
   }
 }
 
-export async function getPosts() {
+export async function getPosts(take: number = 10, cursor?: string) {
   try {
     const posts = await prisma.post.findMany({
+      take: take + 1, // Fetch one extra to determine if there are more
+      cursor: cursor ? { id: cursor } : undefined,
       orderBy: {
         createdAt: "desc",
       },
@@ -75,7 +77,17 @@ export async function getPosts() {
       },
     });
 
-    return posts;
+    let nextCursor: string | undefined = undefined;
+    
+    if (posts.length > take) {
+      const nextItem = posts.pop();
+      nextCursor = nextItem?.id;
+    }
+
+    return {
+      posts,
+      nextCursor,
+    };
   } catch (error: any) {
     console.error("Error in getPosts:");
     if (error instanceof Error) {

@@ -6,15 +6,15 @@ import {
   deleteNotification,
 } from "@/actions/notifications.action";
 import { NotificationsSkeleton } from "@/components/NotificationSkeleton";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatDistanceToNow } from "date-fns";
 import { HeartIcon, MessageCircleIcon, UserPlusIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { DeleteAlertDialog } from "@/components/DeleteAlertDialog";
+import { UserAvatar, UserAvatarLink } from "@/components/UserAvatar";
+import { TimeAgo } from "@/components/TimeAgo";
 
 type Notifications = Awaited<ReturnType<typeof getNotifications>>;
 type Notification = Notifications[number];
@@ -84,115 +84,158 @@ function NotificationsPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <ScrollArea className="h-[calc(100vh-12rem)]">
-            {notifications.length === 0 ? (
-              <div className="p-4 text-center text-muted-foreground">
-                No notifications yet
-              </div>
-            ) : (
-              notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 border-b transition-colors ${
-                    !notification.read
-                      ? "animate-pulse-highlight text-foreground rounded-md"
-                      : ""
-                  }`}
-                >
-                  <div className="flex-1 w-full">
-                    <div className="flex sm:flex-row items-center sm:items-center mb-2 gap-2 sm:gap-4">
-                      <Link
-                        href={`/profile/${notification.creator.username}`}
-                        className="shrink-0"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Avatar className="hover:opacity-80 transition">
-                          <AvatarImage
-                            src={notification.creator.image ?? "/avatar.png"}
-                          />
-                        </Avatar>
-                      </Link>
-                      <div className="flex sm:flex-row flex-col sm:items-center gap-2 sm:gap-4 items-start">
-                        {getNotificationIcon(notification.type)}
-
-                        <div className="flex flex-col">
-                          {notification.creator.name && (
-                            <Link
-                              href={`/profile/${notification.creator.username}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="hover:underline font-medium text-lg"
-                            >
-                              {notification.creator.name}
-                            </Link>
-                          )}
-
-                          <Link
-                            href={`/profile/${notification.creator.username}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="hover:underline text-muted-foreground text-sm"
-                          >
-                            @{notification.creator.username}
-                          </Link>
-                        </div>
-                      </div>
-                      <div className="ml-auto">
-                        <DeleteAlertDialog
-                          isDeleting={deletingId === notification.id}
-                          onDelete={() => handleDelete(notification.id)}
-                          title="Delete notification"
-                          description="This will remove the notification permanently."
-                        />
-                      </div>
-                    </div>
-                    <Link
-                      href={getNotificationLink(notification)}
-                      className="block pl-0 space-y-2 rounded-md hover:bg-gray-700/20 dark:hover:bg-gray-300/5 hover:text-black dark:hover:text-white p-2 transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="text-sm text-muted-foreground">
-                        {notification.type === "FOLLOW"
-                          ? "Started following you"
-                          : notification.type === "LIKE"
-                          ? "Liked your post"
-                          : "Commented on your post"}
-                      </div>
-
-                      {notification.post &&
-                        (notification.type === "LIKE" ||
-                          notification.type === "COMMENT") && (
-                          <div className="text-sm text-muted-foreground rounded-md p-2 bg-muted/30">
-                            <p>{notification.post.content}</p>
-                            {notification.post.image && (
-                              <img
-                                src={notification.post.image}
-                                alt="Post content"
-                                className="mt-2 rounded-md w-full max-w-[200px] h-auto object-cover"
-                              />
-                            )}
-                          </div>
-                        )}
-
-                      {notification.type === "COMMENT" &&
-                        notification.comment && (
-                          <div className="text-sm p-2 bg-accent/50 rounded-md">
-                            {notification.comment.content}
-                          </div>
-                        )}
-
-                      <p className="text-sm text-muted-foreground">
-                        {formatDistanceToNow(new Date(notification.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </p>
-                    </Link>
-                  </div>
-                </div>
-              ))
-            )}
-          </ScrollArea>
+          <NotificationsList
+            notifications={notifications}
+            deletingId={deletingId}
+            onDelete={handleDelete}
+          />
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function NotificationsList({
+  notifications,
+  deletingId,
+  onDelete,
+}: {
+  notifications: Notification[];
+  deletingId: string | null;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <ScrollArea className="h-[calc(100vh-12rem)]">
+      {notifications.length === 0 ? (
+        <div className="p-4 text-center text-muted-foreground">
+          No notifications yet
+        </div>
+      ) : (
+        notifications.map((notification) => (
+          <NotificationItem
+            key={notification.id}
+            notification={notification}
+            isDeleting={deletingId === notification.id}
+            onDelete={async () => onDelete(notification.id)}
+          />
+        ))
+      )}
+    </ScrollArea>
+  );
+}
+
+function NotificationItem({
+  notification,
+  isDeleting,
+  onDelete,
+}: {
+  notification: Notification;
+  isDeleting: boolean;
+  onDelete: () => Promise<void>;
+}) {
+  const isUnread = !notification.read;
+
+  return (
+    <div
+      className={`flex flex-col sm:flex-row sm:items-center gap-4 p-4 border-b transition-colors ${
+        isUnread ? "animate-pulse-highlight text-foreground rounded-md" : ""
+      }`}
+    >
+      <div className="flex-1 w-full">
+        <NotificationHeader notification={notification} />
+
+        <Link
+          href={getNotificationLink(notification)}
+          className="block pl-0 space-y-2 rounded-md hover:bg-gray-700/20 dark:hover:bg-gray-300/5 hover:text-black dark:hover:text-white p-2 transition-colors"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <NotificationContent notification={notification} />
+        </Link>
+      </div>
+
+      <DeleteAlertDialog
+        isDeleting={isDeleting}
+        onDelete={onDelete}
+        title="Delete notification"
+        description="This will remove the notification permanently."
+      />
+    </div>
+  );
+}
+
+function NotificationHeader({ notification }: { notification: Notification }) {
+  return (
+    <div className="flex sm:flex-row items-center sm:items-center mb-2 gap-2 sm:gap-4">
+      <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+        <UserAvatarLink
+          username={notification.creator.username}
+          image={notification.creator.image}
+        />
+      </div>
+      <div className="flex sm:flex-row flex-col sm:items-center gap-2 sm:gap-4 items-start">
+        {getNotificationIcon(notification.type)}
+
+        <div className="flex flex-col">
+          {notification.creator.name && (
+            <Link
+              href={`/profile/${notification.creator.username}`}
+              onClick={(e) => e.stopPropagation()}
+              className="hover:underline font-medium text-lg"
+            >
+              {notification.creator.name}
+            </Link>
+          )}
+
+          <Link
+            href={`/profile/${notification.creator.username}`}
+            onClick={(e) => e.stopPropagation()}
+            className="hover:underline text-muted-foreground text-sm"
+          >
+            @{notification.creator.username}
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NotificationContent({ notification }: { notification: Notification }) {
+  return (
+    <>
+      <div className="text-sm text-muted-foreground">
+        {notification.type === "FOLLOW"
+          ? "Started following you"
+          : notification.type === "LIKE"
+            ? "Liked your post"
+            : "Commented on your post"}
+      </div>
+
+      {notification.post &&
+        (notification.type === "LIKE" || notification.type === "COMMENT") && (
+          <div className="text-sm text-muted-foreground rounded-md p-2 bg-muted/30">
+            <p>{notification.post.content}</p>
+            {notification.post.image && (
+              <img
+                src={notification.post.image}
+                alt="Post content"
+                className="mt-2 rounded-md w-full max-w-[200px] h-auto object-cover"
+              />
+            )}
+          </div>
+        )}
+
+      {notification.type === "COMMENT" && notification.comment && (
+        <div className="text-sm p-2 bg-accent/50 rounded-md">
+          {notification.comment.content}
+        </div>
+      )}
+
+      <TimeAgo
+        date={notification.createdAt}
+        className="text-sm text-muted-foreground"
+        addSuffix
+      />
+    </>
   );
 }
 
