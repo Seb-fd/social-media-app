@@ -36,10 +36,12 @@ import {
 } from "@/actions/profile.action";
 import { getDbUserId, toggleFollow } from "@/actions/user.action";
 import PostCard from "@/components/PostCard";
+import { ProfilePostsFeed } from "@/components/ProfilePostsFeed";
 import { UserAvatar, UserAvatarLink } from "@/components/UserAvatar";
 
 type User = NonNullable<Awaited<ReturnType<typeof getProfileByUsername>>>;
-type Posts = Awaited<ReturnType<typeof getUserPosts>>;
+type PostsResult = Awaited<ReturnType<typeof getUserPosts>>;
+type Posts = PostsResult["posts"];
 
 interface ProfilePageClientProps {
   user: NonNullable<User> & {
@@ -56,16 +58,16 @@ interface ProfilePageClientProps {
       image: string | null;
     }[];
   };
-  posts: Posts;
-  likedPosts: Posts;
+  initialPosts: Posts;
+  initialLikedPosts: Posts;
   isFollowing: boolean;
   currentUserFollowingIds: string[];
 }
 
 export default function ProfilePageClient({
   isFollowing: initialIsFollowing,
-  likedPosts,
-  posts,
+  initialLikedPosts,
+  initialPosts,
   user,
   currentUserFollowingIds = [],
 }: ProfilePageClientProps) {
@@ -179,12 +181,12 @@ export default function ProfilePageClient({
         <ProfileTabs
           activeTab={activeTab}
           onTabChange={setActiveTab}
-          posts={posts}
-          likedPosts={likedPosts}
           user={user}
           dbUserId={dbUserId}
           currentUserFollowingIds={currentUserFollowingIds}
           isOwnProfile={!!isOwnProfile}
+          initialPosts={initialPosts}
+          initialLikedPosts={initialLikedPosts}
         />
 
         <EditProfileDialog
@@ -343,21 +345,21 @@ function ProfileInfo({
 function ProfileTabs({
   activeTab,
   onTabChange,
-  posts,
-  likedPosts,
   user,
   dbUserId,
   currentUserFollowingIds,
   isOwnProfile,
+  initialPosts,
+  initialLikedPosts,
 }: {
   activeTab: string;
   onTabChange: (value: string) => void;
-  posts: Posts;
-  likedPosts: Posts;
   user: ProfilePageClientProps["user"];
   dbUserId: string;
   currentUserFollowingIds: string[];
   isOwnProfile: boolean;
+  initialPosts: Posts;
+  initialLikedPosts: Posts;
 }) {
   return (
     <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
@@ -393,11 +395,23 @@ function ProfileTabs({
       </TabsList>
 
       <TabsContent value="posts" className="mt-6">
-        <ProfilePosts posts={posts} dbUserId={dbUserId} />
+        <ProfilePostsFeed
+          userId={user.id}
+          dbUserId={dbUserId}
+          initialPosts={initialPosts}
+          initialLikedPosts={initialLikedPosts}
+          type="posts"
+        />
       </TabsContent>
 
       <TabsContent value="likes" className="mt-6">
-        <ProfileLikes likedPosts={likedPosts} dbUserId={dbUserId} />
+        <ProfilePostsFeed
+          userId={user.id}
+          dbUserId={dbUserId}
+          initialPosts={initialPosts}
+          initialLikedPosts={initialLikedPosts}
+          type="likes"
+        />
       </TabsContent>
 
       <TabsContent value="followers" className="mt-6">

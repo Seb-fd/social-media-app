@@ -78,9 +78,11 @@ export async function getProfileByUsername(username: string) {
   }
 }
 
-export async function getUserPosts(userId: string) {
+export async function getUserPosts(userId: string, take: number = 10, cursor?: string) {
   try {
     const posts = await prisma.post.findMany({
+      take: take + 1,
+      cursor: cursor ? { id: cursor } : undefined,
       where: {
         authorId: userId,
       },
@@ -125,16 +127,28 @@ export async function getUserPosts(userId: string) {
       },
     });
 
-    return posts;
+    let nextCursor: string | undefined = undefined;
+    
+    if (posts.length > take) {
+      const nextItem = posts.pop();
+      nextCursor = nextItem?.id;
+    }
+
+    return {
+      posts,
+      nextCursor,
+    };
   } catch (error) {
     console.error("Error fetching user posts:", error);
     throw new Error("Failed to fetch user posts");
   }
 }
 
-export async function getUserLikedPosts(userId: string) {
+export async function getUserLikedPosts(userId: string, take: number = 10, cursor?: string) {
   try {
     const likedPosts = await prisma.post.findMany({
+      take: take + 1,
+      cursor: cursor ? { id: cursor } : undefined,
       where: {
         likes: {
           some: {
@@ -183,7 +197,17 @@ export async function getUserLikedPosts(userId: string) {
       },
     });
 
-    return likedPosts;
+    let nextCursor: string | undefined = undefined;
+    
+    if (likedPosts.length > take) {
+      const nextItem = likedPosts.pop();
+      nextCursor = nextItem?.id;
+    }
+
+    return {
+      posts: likedPosts,
+      nextCursor,
+    };
   } catch (error) {
     console.error("Error fetching liked posts:", error);
     throw new Error("Failed to fetch liked posts");

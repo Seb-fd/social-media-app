@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import {
   getProfileByUsername,
   getUserLikedPosts,
@@ -14,9 +15,9 @@ export async function generateMetadata({
   params,
 }: {
   params: { username: string };
-}) {
+}): Promise<Metadata> {
   const user = await getProfileByUsername(params.username);
-  if (!user) return;
+  if (!user) return {};
 
   return {
     title: `${user.name ?? user.username}`,
@@ -31,10 +32,10 @@ async function ProfilePageServer({ params }: { params: { username: string } }) {
   const currentClerkUser = await currentUser();
   const currentDbUserId = currentClerkUser ? await getDbUserId().catch(() => null) : null;
 
-  const [posts, likedPosts, isCurrentUserFollowing] =
+  const [postsResult, likedPostsResult, isCurrentUserFollowing] =
     await Promise.all([
-      getUserPosts(user.id),
-      getUserLikedPosts(user.id),
+      getUserPosts(user.id, 10),
+      getUserLikedPosts(user.id, 10),
       isFollowing(user.id),
     ]);
 
@@ -47,8 +48,8 @@ async function ProfilePageServer({ params }: { params: { username: string } }) {
   return (
     <ProfilePageClient
       user={user}
-      posts={posts}
-      likedPosts={likedPosts}
+      initialPosts={postsResult.posts}
+      initialLikedPosts={likedPostsResult.posts}
       isFollowing={isCurrentUserFollowing}
       currentUserFollowingIds={currentUserFollowingIds}
     />
