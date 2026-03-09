@@ -121,5 +121,6 @@ model Notification {
 enum NotificationType {
   LIKE     
   COMMENT 
-  FOLLOW   
+  FOLLOW  
+  MENTION 
 }

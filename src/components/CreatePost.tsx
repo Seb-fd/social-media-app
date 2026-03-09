@@ -4,7 +4,6 @@ import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "./ui/card";
-import { Textarea } from "./ui/textarea";
 import { ImageIcon, Loader2Icon, SendIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { createPost } from "@/actions/post.action";
@@ -12,6 +11,7 @@ import toast from "react-hot-toast";
 import ImageUpload from "./ImageUpload";
 import { getUserByClerkId } from "@/actions/user.action";
 import { UserAvatar, UserAvatarLink } from "./UserAvatar";
+import { MentionInput } from "./MentionInput";
 
 function CreatePost() {
   const { user } = useUser();
@@ -112,11 +112,10 @@ function PostInputArea({
   return (
     <div className="flex space-x-4">
       <UserAvatarLink username={username} image={userImage} size="md" />
-      <Textarea
-        placeholder="What's on your mind?"
-        className="min-h-[100px] resize-none border-none focus-visible:ring-0 p-0 text-base"
+      <MentionInput
         value={content}
-        onChange={(e) => onContentChange(e.target.value)}
+        onChange={onContentChange}
+        placeholder="What's on your mind?"
         disabled={isPosting}
       />
     </div>
@@ -131,13 +130,11 @@ function ImageUploadSection({
   onImageChange: (url: string) => void;
 }) {
   return (
-    <div className="border rounded-lg p-4">
-      <ImageUpload
-        endpoint="postImage"
-        value={imageUrl}
-        onChange={onImageChange}
-      />
-    </div>
+    <ImageUpload
+      endpoint="postImage"
+      value={imageUrl}
+      onChange={onImageChange}
+    />
   );
 }
 

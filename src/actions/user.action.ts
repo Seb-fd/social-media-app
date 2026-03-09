@@ -125,15 +125,24 @@ export async function toggleFollow(targetUserId: string) {
     });
 
     if (existingFollow) {
-      // unfollow
-      await prisma.follows.delete({
-        where: {
-          followerId_followingId: {
-            followerId: userId,
-            followingId: targetUserId,
+      // unfollow and delete follow notification
+      await prisma.$transaction([
+        prisma.follows.delete({
+          where: {
+            followerId_followingId: {
+              followerId: userId,
+              followingId: targetUserId,
+            },
           },
-        },
-      });
+        }),
+        prisma.notification.deleteMany({
+          where: {
+            type: "FOLLOW",
+            userId: targetUserId,
+            creatorId: userId,
+          },
+        }),
+      ]);
     } else {
       // follow
       await prisma.$transaction([
@@ -160,4 +169,45 @@ export async function toggleFollow(targetUserId: string) {
     console.log("Error in toggleFollow", error);
     return { success: false, error: "Error toggling follow" };
   }
+}
+
+export async function getUsersByUsernames(usernames: string[]) {
+  if (usernames.length === 0) return [];
+  
+  const users = await prisma.user.findMany({
+    where: {
+      username: {
+        in: usernames,
+      },
+    },
+    select: {
+      id: true,
+      username: true,
+    },
+  });
+  
+  return users;
+}
+
+export async function searchUsers(query: string, excludeUserId?: string) {
+  if (!query || query.length < 1) return [];
+  
+  const users = await prisma.user.findMany({
+    where: {
+      username: {
+        contains: query,
+        mode: "insensitive",
+      },
+      ...(excludeUserId ? { NOT: { id: excludeUserId } } : {}),
+    },
+    take: 5,
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      image: true,
+    },
+  });
+  
+  return users;
 }

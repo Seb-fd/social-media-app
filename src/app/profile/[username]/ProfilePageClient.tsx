@@ -28,7 +28,7 @@ import {
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
-import { UploadButton } from "@/lib/uploadthing";
+import ImageUpload from "@/components/ImageUpload";
 import {
   getProfileByUsername,
   getUserPosts,
@@ -660,6 +660,7 @@ function EditProfileDialog({
     bio: user.bio || "",
     location: user.location || "",
     website: user.website || "",
+    image: user.image || "",
   });
 
   const isValidURL = (url: string) => {
@@ -706,14 +707,11 @@ function EditProfileDialog({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label>Profile Image</Label>
-            <UploadButton
+            <ImageUpload
               endpoint="profileImage"
-              onClientUploadComplete={async (res) => {
-                const imageUrl = res?.[0]?.url;
-                if (!imageUrl) {
-                  toast.error("Upload failed");
-                  return;
-                }
+              value={editForm.image || ""}
+              onChange={async (imageUrl) => {
+                if (!imageUrl) return;
 
                 try {
                   const blob = await fetch(imageUrl).then((r) => r.blob());
@@ -724,14 +722,12 @@ function EditProfileDialog({
                     body: JSON.stringify({ imageUrl }),
                   });
 
+                  setEditForm({ ...editForm, image: imageUrl });
                   toast.success("Profile image updated");
                 } catch (err) {
                   toast.error("Failed to update profile image");
                   console.error(err);
                 }
-              }}
-              onUploadError={(err) => {
-                toast.error("Upload error: " + err.message);
               }}
             />
           </div>

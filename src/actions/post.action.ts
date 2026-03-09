@@ -1,9 +1,10 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { getDbUserId } from "./user.action";
+import { getDbUserId, getUsersByUsernames } from "./user.action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getUniqueMentions } from "@/lib/mentions";
 
 export async function createPost(content: string, image: string) {
   try {
@@ -18,6 +19,26 @@ export async function createPost(content: string, image: string) {
         authorId: userId,
       },
     });
+
+    const mentions = getUniqueMentions(content);
+    if (mentions.length > 0) {
+      const mentionedUsers = await getUsersByUsernames(mentions);
+      
+      const notifications = mentionedUsers
+        .filter((user) => user.id !== userId)
+        .map((user) => ({
+          type: "MENTION" as const,
+          userId: user.id,
+          creatorId: userId,
+          postId: post.id,
+        }));
+
+      if (notifications.length > 0) {
+        await prisma.notification.createMany({
+          data: notifications as any,
+        });
+      }
+    }
 
     revalidatePath("/"); // purge the cache for the home page
     return { success: true, post };
@@ -123,15 +144,24 @@ export async function toggleLike(postId: string) {
     if (!post) throw new Error("Post not found");
 
     if (existingLike) {
-      // unlike
-      await prisma.like.delete({
-        where: {
-          userId_postId: {
-            userId,
-            postId,
+      // unlike and delete notification
+      await prisma.$transaction([
+        prisma.like.delete({
+          where: {
+            userId_postId: {
+              userId,
+              postId,
+            },
           },
-        },
-      });
+        }),
+        prisma.notification.deleteMany({
+          where: {
+            type: "LIKE",
+            postId,
+            creatorId: userId,
+          },
+        }),
+      ]);
     } else {
       // like and create notification (only if liking someone else's post)
       await prisma.$transaction([
@@ -202,6 +232,28 @@ export async function createComment(postId: string, content: string) {
         });
       }
 
+      // Handle mentions
+      const mentions = getUniqueMentions(content);
+      if (mentions.length > 0) {
+        const mentionedUsers = await getUsersByUsernames(mentions);
+        
+        const mentionNotifications = mentionedUsers
+          .filter((user) => user.id !== userId && user.id !== post.authorId)
+          .map((user) => ({
+            type: "MENTION" as const,
+            userId: user.id,
+            creatorId: userId,
+            postId,
+            commentId: newComment.id,
+          }));
+
+        if (mentionNotifications.length > 0) {
+          await tx.notification.createMany({
+            data: mentionNotifications as any,
+          });
+        }
+      }
+
       return [newComment];
     });
 
@@ -226,6 +278,11 @@ export async function deletePost(postId: string) {
     if (post.authorId !== userId)
       throw new Error("Unauthorized - no delete permission");
 
+    // Delete notifications related to this post
+    await prisma.notification.deleteMany({
+      where: { postId },
+    });
+
     await prisma.post.delete({
       where: { id: postId },
     });
@@ -239,6 +296,11 @@ export async function deletePost(postId: string) {
 }
 
 export async function deletePostAndRedirect(postId: string) {
+  // Delete notifications related to this post
+  await prisma.notification.deleteMany({
+    where: { postId },
+  });
+
   await prisma.post.delete({
     where: { id: postId },
   });

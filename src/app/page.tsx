@@ -18,8 +18,10 @@ export default async function Home() {
         <PostsFeed initialPosts={result.posts} dbUserId={dbUserId} />
       </div>
 
-      <div className="hidden lg:block lg:col-span-4 sticky top-20">
-        <SugestedUsers />
+      <div className="hidden lg:block lg:col-span-4">
+        <div className="sticky top-20">
+          <SugestedUsers />
+        </div>
       </div>
     </div>
   );

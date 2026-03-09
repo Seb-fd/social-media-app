@@ -14,6 +14,7 @@ import { CommentForm } from "./CommentForm";
 import { ImagePreviewDialog } from "./ImagePreviewDialog";
 import { UserAvatar, UserAvatarLink } from "./UserAvatar";
 import { TimeAgo } from "./TimeAgo";
+import { MentionText } from "./MentionText";
 
 type PostCardProps = {
   post: Post;
@@ -104,7 +105,7 @@ function PostCard({
 
           {post.content && (
             <div className="mt-2 text-sm break-words text-foreground">
-              <p>{post.content}</p>
+              <MentionText content={post.content} />
             </div>
           )}
 
@@ -135,6 +136,7 @@ function PostCard({
               deletingCommentId={deletingCommentId}
               onDeleteComment={handleDeleteComment}
               postId={post.id}
+              postAuthorId={post.author.id}
             />
           )}
         </div>
@@ -273,12 +275,14 @@ function PostComments({
   deletingCommentId,
   onDeleteComment,
   postId,
+  postAuthorId,
 }: {
   comments: Post["comments"];
   dbUserId: string | null;
   deletingCommentId: string | null;
   onDeleteComment: (commentId: string) => Promise<void>;
   postId: string;
+  postAuthorId: string;
 }) {
   return (
     <div className="space-y-4 pt-4 border-t">
@@ -288,6 +292,7 @@ function PostComments({
             key={comment.id}
             comment={comment}
             dbUserId={dbUserId}
+            postAuthorId={postAuthorId}
             isDeleting={deletingCommentId === comment.id}
             onDelete={() => onDeleteComment(comment.id)}
           />
@@ -302,15 +307,19 @@ function PostComments({
 function CommentItem({
   comment,
   dbUserId,
+  postAuthorId,
   isDeleting,
   onDelete,
 }: {
   comment: Post["comments"][number];
   dbUserId: string | null;
+  postAuthorId: string;
   isDeleting: boolean;
   onDelete: () => Promise<void>;
 }) {
   const isCommentAuthor = !!dbUserId && dbUserId === comment.author.id;
+  const isPostAuthor = !!dbUserId && dbUserId === postAuthorId;
+  const canDelete = isCommentAuthor || isPostAuthor;
 
   return (
     <div className="flex space-x-3">
@@ -341,10 +350,12 @@ function CommentItem({
                 className="text-sm text-muted-foreground"
               />
             </div>
-            <p className="text-sm break-words">{comment.content}</p>
+            <div className="text-sm break-words">
+              <MentionText content={comment.content} />
+            </div>
           </div>
 
-          {isCommentAuthor && (
+          {canDelete && (
             <DeleteAlertDialog
               isDeleting={isDeleting}
               onDelete={onDelete}

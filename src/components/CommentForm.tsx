@@ -6,9 +6,9 @@ import { useUser, SignInButton } from "@clerk/nextjs";
 import { createComment } from "@/actions/comment.action";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { SendIcon, LogInIcon } from "lucide-react";
 import { UserAvatar, UserAvatarLink } from "./UserAvatar";
+import { MentionInput } from "./MentionInput";
 
 export function CommentForm({ postId }: { postId: string }) {
   const { user } = useUser();
@@ -56,11 +56,10 @@ export function CommentForm({ postId }: { postId: string }) {
         />
       )}
       <div className="flex-1">
-        <Textarea
-          placeholder="Write a comment..."
+        <MentionInput
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="min-h-[80px] resize-none"
+          onChange={setContent}
+          placeholder="Write a comment..."
           disabled={isPending}
         />
         <div className="flex justify-end mt-2">

@@ -8,7 +8,7 @@ import {
 import { NotificationsSkeleton } from "@/components/NotificationSkeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { HeartIcon, MessageCircleIcon, UserPlusIcon } from "lucide-react";
+import { HeartIcon, MessageCircleIcon, UserPlusIcon, ShareIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import Link from "next/link";
@@ -29,6 +29,8 @@ const getNotificationIcon = (type: string) => {
       );
     case "FOLLOW":
       return <UserPlusIcon className="w-5 h-5 text-green-500 fill-current" />;
+    case "MENTION":
+      return <ShareIcon className="w-5 h-5 text-blue-500 fill-current" />;
     default:
       return null;
   }
@@ -207,11 +209,13 @@ function NotificationContent({ notification }: { notification: Notification }) {
           ? "Started following you"
           : notification.type === "LIKE"
             ? "Liked your post"
-            : "Commented on your post"}
+            : notification.type === "MENTION"
+              ? "Mentioned you"
+              : "Commented on your post"}
       </div>
 
       {notification.post &&
-        (notification.type === "LIKE" || notification.type === "COMMENT") && (
+        (notification.type === "LIKE" || notification.type === "MENTION") && (
           <div className="text-sm text-muted-foreground rounded-md p-2 bg-muted/30">
             <p>{notification.post.content}</p>
             {notification.post.image && (
@@ -225,6 +229,12 @@ function NotificationContent({ notification }: { notification: Notification }) {
         )}
 
       {notification.type === "COMMENT" && notification.comment && (
+        <div className="text-sm p-2 bg-accent/50 rounded-md">
+          {notification.comment.content}
+        </div>
+      )}
+
+      {notification.type === "MENTION" && notification.comment && (
         <div className="text-sm p-2 bg-accent/50 rounded-md">
           {notification.comment.content}
         </div>
@@ -245,6 +255,7 @@ const getNotificationLink = (notification: Notification) => {
       return `/profile/${notification.creator.username}`;
     case "LIKE":
     case "COMMENT":
+    case "MENTION":
       return notification.comment
         ? `/post/${notification.post?.id}#comment-${notification.comment.id}`
         : `/post/${notification.post?.id}`;
