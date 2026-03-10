@@ -8,9 +8,10 @@ interface ImageUploadProps {
   onChange: (url: string) => void;
   value: string;
   endpoint: "postImage" | "profileImage";
+  showPreview?: boolean;
 }
 
-function ImageUpload({ endpoint, onChange, value }: ImageUploadProps) {
+function ImageUpload({ endpoint, onChange, value, showPreview = true }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,7 +35,7 @@ function ImageUpload({ endpoint, onChange, value }: ImageUploadProps) {
     await startUpload([file]);
   };
 
-  if (value) {
+  if (value && showPreview) {
     return (
       <div className="space-y-3">
         <div className="relative w-full max-w-md">

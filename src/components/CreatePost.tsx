@@ -117,6 +117,8 @@ function PostInputArea({
         onChange={onContentChange}
         placeholder="What's on your mind?"
         disabled={isPosting}
+        maxLength={500}
+        showCounter
       />
     </div>
   );

@@ -5,6 +5,7 @@ import { getDbUserId, getUsersByUsernames } from "./user.action";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getUniqueMentions } from "@/lib/mentions";
+import { sanitizeInput } from "@/lib/sanitize";
 
 export async function createPost(content: string, image: string) {
   try {
@@ -12,15 +13,21 @@ export async function createPost(content: string, image: string) {
 
     if (!userId) return;
 
+    const sanitizedContent = sanitizeInput(content);
+
+    if (sanitizedContent.length > 500) {
+      return { success: false, error: "Post too long (max 500 characters)" };
+    }
+
     const post = await prisma.post.create({
       data: {
-        content,
+        content: sanitizedContent,
         image,
         authorId: userId,
       },
     });
 
-    const mentions = getUniqueMentions(content);
+    const mentions = getUniqueMentions(sanitizedContent);
     if (mentions.length > 0) {
       const mentionedUsers = await getUsersByUsernames(mentions);
       

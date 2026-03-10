@@ -9,6 +9,8 @@ interface MentionInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  maxLength?: number;
+  showCounter?: boolean;
 }
 
 export function MentionInput({
@@ -16,6 +18,8 @@ export function MentionInput({
   onChange,
   placeholder = "What's on your mind?",
   disabled = false,
+  maxLength,
+  showCounter = false,
 }: MentionInputProps) {
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState<Array<{
@@ -41,8 +45,12 @@ export function MentionInput({
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = e.target.value;
+    let newValue = e.target.value;
     const cursorPos = e.target.selectionStart || 0;
+    
+    if (maxLength && newValue.length > maxLength) {
+      newValue = newValue.slice(0, maxLength);
+    }
     
     onChange(newValue);
     setCursorPosition(cursorPos);
@@ -127,7 +135,7 @@ export function MentionInput({
         disabled={disabled}
         className="min-h-[100px] resize-none border-none focus-visible:ring-0 p-2 text-base w-full bg-transparent"
       />
-      
+
       {showSuggestions && suggestions.length > 0 && (
         <div className="absolute z-50 top-full left-0 mt-1 w-64 bg-background border rounded-md shadow-lg max-h-48 overflow-y-auto">
           {suggestions.map((user, index) => (
@@ -144,6 +152,12 @@ export function MentionInput({
             </button>
           ))}
         </div>
+      )}
+
+      {showCounter && maxLength && (
+        <p className={`text-xs text-right mt-1 ${value.length >= (maxLength || 0) ? 'text-red-500' : 'text-muted-foreground'}`}>
+          {value.length}/{maxLength}
+        </p>
       )}
     </div>
   );

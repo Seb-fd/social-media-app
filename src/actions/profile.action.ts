@@ -4,10 +4,15 @@ import { auth } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { getDbUserId } from "./user.action";
+import { sanitizeInput, isValidUrl } from "@/lib/sanitize";
 
 export async function updateProfileImage(url: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
+
+  if (!isValidUrl(url)) {
+    throw new Error("Invalid URL");
+  }
 
   return await prisma.user.update({
     where: { clerkId: userId },
@@ -219,10 +224,23 @@ export async function updateProfile(formData: FormData) {
     const { userId: clerkId } = await auth();
     if (!clerkId) throw new Error("Unauthorized");
 
-    const name = formData.get("name") as string;
-    const bio = formData.get("bio") as string;
-    const location = formData.get("location") as string;
-    const website = formData.get("website") as string;
+    const rawName = formData.get("name") as string;
+    const rawBio = formData.get("bio") as string;
+    const rawLocation = formData.get("location") as string;
+    const rawWebsite = formData.get("website") as string;
+
+    const name = sanitizeInput(rawName);
+    const bio = sanitizeInput(rawBio);
+    const location = sanitizeInput(rawLocation);
+    let website = sanitizeInput(rawWebsite);
+
+    if (website && !isValidUrl(website)) {
+      return { success: false, error: "Invalid URL format" };
+    }
+
+    if (!name) {
+      return { success: false, error: "Name is required" };
+    }
 
     const user = await prisma.user.update({
       where: { clerkId },
@@ -230,7 +248,7 @@ export async function updateProfile(formData: FormData) {
         name,
         bio,
         location,
-        website,
+        website: website || null,
       },
     });
 

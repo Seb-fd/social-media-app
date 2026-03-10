@@ -660,8 +660,8 @@ function EditProfileDialog({
     bio: user.bio || "",
     location: user.location || "",
     website: user.website || "",
-    image: user.image || "",
   });
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   const isValidURL = (url: string) => {
     const pattern = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-]*)*\/?$/;
@@ -671,19 +671,30 @@ function EditProfileDialog({
   const handleSubmit = async () => {
     const { name, bio, website } = editForm;
 
-    if (name.length > 50) {
-      toast.error("Name can not contain more than 50 characters.");
-      return;
-    }
-
-    if (bio.length > 160) {
-      toast.error("Bio can not contain more than 160 characters.");
+    if (name.trim().length === 0) {
+      toast.error("Name is required.");
       return;
     }
 
     if (website && !isValidURL(website)) {
-      toast.error("The URL is not valid.");
+      toast.error("Please enter a valid URL (e.g., https://example.com)");
       return;
+    }
+
+    if (previewImage) {
+      try {
+        const blob = await fetch(previewImage).then((r) => r.blob());
+        await currentUser?.setProfileImage({ file: blob });
+
+        await fetch("/api/profile/image", {
+          method: "POST",
+          body: JSON.stringify({ imageUrl: previewImage }),
+        });
+      } catch (err) {
+        toast.error("Failed to update profile image");
+        console.error(err);
+        return;
+      }
     }
 
     const formData = new FormData();
@@ -709,27 +720,14 @@ function EditProfileDialog({
             <Label>Profile Image</Label>
             <ImageUpload
               endpoint="profileImage"
-              value={editForm.image || ""}
-              onChange={async (imageUrl) => {
-                if (!imageUrl) return;
-
-                try {
-                  const blob = await fetch(imageUrl).then((r) => r.blob());
-                  await currentUser?.setProfileImage({ file: blob });
-
-                  await fetch("/api/profile/image", {
-                    method: "POST",
-                    body: JSON.stringify({ imageUrl }),
-                  });
-
-                  setEditForm({ ...editForm, image: imageUrl });
-                  toast.success("Profile image updated");
-                } catch (err) {
-                  toast.error("Failed to update profile image");
-                  console.error(err);
-                }
+              value={previewImage || ""}
+              onChange={(imageUrl) => {
+                setPreviewImage(imageUrl);
               }}
             />
+          </div>
+
+          <div className="space-y-2">
           </div>
 
           <div className="space-y-2">
@@ -738,10 +736,13 @@ function EditProfileDialog({
               name="name"
               value={editForm.name}
               onChange={(e) =>
-                setEditForm({ ...editForm, name: e.target.value })
+                setEditForm({ ...editForm, name: e.target.value.slice(0, 30) })
               }
               placeholder="Your name"
             />
+            <p className="text-xs text-muted-foreground text-right">
+              {editForm.name.length}/30
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Bio</Label>
@@ -749,11 +750,14 @@ function EditProfileDialog({
               name="bio"
               value={editForm.bio}
               onChange={(e) =>
-                setEditForm({ ...editForm, bio: e.target.value })
+                setEditForm({ ...editForm, bio: e.target.value.slice(0, 160) })
               }
               className="min-h-[100px]"
               placeholder="Tell us about yourself"
             />
+            <p className="text-xs text-muted-foreground text-right">
+              {editForm.bio.length}/160
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Location</Label>
@@ -761,10 +765,13 @@ function EditProfileDialog({
               name="location"
               value={editForm.location}
               onChange={(e) =>
-                setEditForm({ ...editForm, location: e.target.value })
+                setEditForm({ ...editForm, location: e.target.value.slice(0, 30) })
               }
               placeholder="Where are you based?"
             />
+            <p className="text-xs text-muted-foreground text-right">
+              {editForm.location.length}/30
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Website</Label>
@@ -772,10 +779,13 @@ function EditProfileDialog({
               name="website"
               value={editForm.website}
               onChange={(e) =>
-                setEditForm({ ...editForm, website: e.target.value })
+                setEditForm({ ...editForm, website: e.target.value.slice(0, 100) })
               }
-              placeholder="Your personal website"
+              placeholder="https://yourwebsite.com"
             />
+            <p className="text-xs text-muted-foreground text-right">
+              {editForm.website.length}/100
+            </p>
           </div>
         </div>
 

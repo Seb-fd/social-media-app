@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getDbUserId, getUsersByUsernames } from "./user.action";
 import { revalidatePath } from "next/cache";
 import { getUniqueMentions } from "@/lib/mentions";
+import { sanitizeInput } from "@/lib/sanitize";
 
 export async function createComment(postId: string, content: string) {
   const userId = await getDbUserId();
@@ -17,9 +18,15 @@ export async function createComment(postId: string, content: string) {
 
     if (!post) return { success: false, error: "Post not found" };
 
+    const sanitizedContent = sanitizeInput(content);
+
+    if (sanitizedContent.length > 280) {
+      return { success: false, error: "Comment too long (max 280 characters)" };
+    }
+
     const newComment = await prisma.comment.create({
       data: {
-        content,
+        content: sanitizedContent,
         postId,
         authorId: userId,
       },
@@ -38,8 +45,8 @@ export async function createComment(postId: string, content: string) {
       });
     }
 
-    // Handle mentions in comments
-    const mentions = getUniqueMentions(content);
+    // Handle mentions
+    const mentions = getUniqueMentions(sanitizedContent);
     if (mentions.length > 0) {
       const mentionedUsers = await getUsersByUsernames(mentions);
       

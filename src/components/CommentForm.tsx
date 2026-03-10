@@ -61,6 +61,8 @@ export function CommentForm({ postId }: { postId: string }) {
           onChange={setContent}
           placeholder="Write a comment..."
           disabled={isPending}
+          maxLength={280}
+          showCounter
         />
         <div className="flex justify-end mt-2">
           <Button
