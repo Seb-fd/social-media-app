@@ -534,7 +534,7 @@ function FollowersList({
             className="flex items-center justify-between gap-4 p-4 border rounded-xl bg-white dark:bg-[#0a0a0a] border-neutral-200 dark:border-neutral-800"
           >
             <Link
-              href={`/profile/${follower.username}`}
+              href={`/profile/${encodeURIComponent(follower.username)}`}
               className="flex items-center gap-4"
             >
               <UserAvatar image={follower.image} size="md" />
@@ -609,13 +609,13 @@ function FollowingList({
               />
               <div>
                 <Link
-                  href={`/profile/${followed.username}`}
+                  href={`/profile/${encodeURIComponent(followed.username)}`}
                   className="font-semibold text-black dark:text-white hover:underline block"
                 >
                   {followed.name ?? followed.username}
                 </Link>
                 <Link
-                  href={`/profile/${followed.username}`}
+                  href={`/profile/${encodeURIComponent(followed.username)}`}
                   className="text-sm text-muted-foreground hover:underline block"
                 >
                   @{followed.username}

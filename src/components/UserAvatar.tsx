@@ -37,7 +37,7 @@ export function UserAvatarLink({
   className = "",
 }: UserAvatarProps) {
   return (
-    <Link href={`/profile/${username}`}>
+    <Link href={`/profile/${encodeURIComponent(username)}`}>
       <UserAvatar image={image} size={size} className={className} />
     </Link>
   );

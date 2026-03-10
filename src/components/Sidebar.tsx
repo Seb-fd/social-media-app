@@ -68,7 +68,7 @@ function SidebarProfileLink({
 }) {
   return (
     <Link
-      href={`/profile/${username}`}
+      href={`/profile/${encodeURIComponent(username)}`}
       className="flex flex-col items-center justify-center"
     >
       {children}

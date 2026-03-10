@@ -22,8 +22,11 @@ export async function updateProfileImage(url: string) {
 
 export async function getProfileByUsername(username: string) {
   try {
+    let normalizedUsername = decodeURIComponent(username);
+    normalizedUsername = normalizedUsername.replace(/ /g, "+").toLowerCase();
+    
     const user = await prisma.user.findUnique({
-      where: { username },
+      where: { username: normalizedUsername },
       select: {
         id: true,
         name: true,

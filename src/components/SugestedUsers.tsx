@@ -48,13 +48,13 @@ function SuggestedUserInfo({
       <UserAvatarLink username={user.username} image={user.image} />
       <div className="text-xs">
         <Link
-          href={`/profile/${user.username}`}
+          href={`/profile/${encodeURIComponent(user.username)}`}
           className="font-medium cursor-pointer hover:underline"
         >
           {user.name}
         </Link>
         <Link
-          href={`/profile/${user.username}`}
+          href={`/profile/${encodeURIComponent(user.username)}`}
           className="text-muted-foreground hover:underline"
         >
           @{user.username}

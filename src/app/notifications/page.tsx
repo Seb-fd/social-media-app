@@ -180,7 +180,7 @@ function NotificationHeader({ notification }: { notification: Notification }) {
         <div className="flex flex-col">
           {notification.creator.name && (
             <Link
-              href={`/profile/${notification.creator.username}`}
+              href={`/profile/${encodeURIComponent(notification.creator.username)}`}
               onClick={(e) => e.stopPropagation()}
               className="hover:underline font-medium text-lg"
             >
@@ -189,7 +189,7 @@ function NotificationHeader({ notification }: { notification: Notification }) {
           )}
 
           <Link
-            href={`/profile/${notification.creator.username}`}
+            href={`/profile/${encodeURIComponent(notification.creator.username)}`}
             onClick={(e) => e.stopPropagation()}
             className="hover:underline text-muted-foreground text-sm"
           >
@@ -252,7 +252,7 @@ function NotificationContent({ notification }: { notification: Notification }) {
 const getNotificationLink = (notification: Notification) => {
   switch (notification.type) {
     case "FOLLOW":
-      return `/profile/${notification.creator.username}`;
+      return `/profile/${encodeURIComponent(notification.creator.username)}`;
     case "LIKE":
     case "COMMENT":
     case "MENTION":

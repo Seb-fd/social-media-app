@@ -19,12 +19,15 @@ export async function syncUser() {
 
     if (existingUser) return existingUser;
 
+    let baseUsername = user.username ?? user.emailAddresses[0].emailAddress.split("@")[0];
+    let username = sanitizeUsername(baseUsername);
+    username = await ensureUniqueUsername(username);
+
     const dbUser = await prisma.user.create({
       data: {
         clerkId: userId,
         name: `${user.firstName || ""} ${user.lastName || ""}`,
-        username:
-          user.username ?? user.emailAddresses[0].emailAddress.split("@")[0],
+        username,
         email: user.emailAddresses[0].emailAddress,
         image: user.imageUrl,
       },
@@ -34,6 +37,32 @@ export async function syncUser() {
   } catch (error) {
     console.log("Error in syncUser", error);
   }
+}
+
+function sanitizeUsername(username: string): string {
+  return username
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9_+.\-]/g, "")
+    .toLowerCase()
+    .slice(0, 30);
+}
+
+async function ensureUniqueUsername(username: string): Promise<string> {
+  const existing = await prisma.user.findUnique({
+    where: { username },
+  });
+  
+  if (!existing) return username;
+  
+  let counter = 1;
+  let newUsername = `${username}${counter}`;
+  
+  while (await prisma.user.findUnique({ where: { username: newUsername } })) {
+    counter++;
+    newUsername = `${username}${counter}`;
+  }
+  
+  return newUsername;
 }
 
 export async function getUserByClerkId(clerkId: string) {

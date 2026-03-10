@@ -49,13 +49,13 @@ const CommentsList: React.FC<CommentsListProps> = ({
               <div>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <Link
-                    href={`/profile/${comment.author.username}`}
+                    href={`/profile/${encodeURIComponent(comment.author.username)}`}
                     className="font-medium text-sm hover:underline"
                   >
                     {comment.author.name ?? comment.author.username}
                   </Link>
                   <Link
-                    href={`/profile/${comment.author.username}`}
+                    href={`/profile/${encodeURIComponent(comment.author.username)}`}
                     className="text-sm text-muted-foreground hover:underline"
                   >
                     @{comment.author.username}

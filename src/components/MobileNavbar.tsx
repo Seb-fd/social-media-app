@@ -133,7 +133,7 @@ function MobileMenuContent({
           <NotificationIndicator onClick={onClose} />
 
           {username && (
-            <MobileNavLink href={`/profile/${username}`} onClick={onClose}>
+            <MobileNavLink href={`/profile/${encodeURIComponent(username)}`} onClick={onClose}>
               <UserIcon className="w-4 h-4" />
               Profile
             </MobileNavLink>

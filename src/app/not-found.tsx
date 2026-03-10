@@ -44,7 +44,7 @@ export default async function NotFound() {
 
               {username ? (
                 <Button variant="outline" asChild>
-                  <Link href={`/profile/${username}`}>
+                  <Link href={`/profile/${encodeURIComponent(username)}`}>
                     <UserIcon className="mr-2 size-4" />
                     Go to Profile
                   </Link>

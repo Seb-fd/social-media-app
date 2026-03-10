@@ -167,7 +167,7 @@ function PostHeader({
         <div className="flex items-start justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 truncate">
             <Link
-              href={`/profile/${post.author.username}`}
+              href={`/profile/${encodeURIComponent(post.author.username)}`}
               className="font-semibold truncate hover:underline"
             >
               {post.author.name}
@@ -175,7 +175,7 @@ function PostHeader({
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <Link
                 className="hover:underline"
-                href={`/profile/${post.author.username}`}
+                href={`/profile/${encodeURIComponent(post.author.username)}`}
               >
                 @{post.author.username}
               </Link>
@@ -333,13 +333,13 @@ function CommentItem({
           <div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <Link
-                href={`/profile/${comment.author.username}`}
+                href={`/profile/${encodeURIComponent(comment.author.username)}`}
                 className="font-medium text-sm hover:underline"
               >
                 {comment.author.name ?? comment.author.username}
               </Link>
               <Link
-                href={`/profile/${comment.author.username}`}
+                href={`/profile/${encodeURIComponent(comment.author.username)}`}
                 className="text-sm text-muted-foreground hover:underline"
               >
                 @{comment.author.username}

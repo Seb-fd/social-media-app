@@ -7,7 +7,7 @@ interface MentionTextProps {
 }
 
 export function MentionText({ content }: MentionTextProps) {
-  const parts = content.split(/(@\w+)/g);
+  const parts = content.split(/(@[\w+]+)/g);
 
   return (
     <p>
@@ -17,7 +17,7 @@ export function MentionText({ content }: MentionTextProps) {
           return (
             <Link
               key={index}
-              href={`/profile/${username}`}
+              href={`/profile/${encodeURIComponent(username)}`}
               className="text-primary hover:underline font-medium"
             >
               {part}
