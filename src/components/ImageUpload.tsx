@@ -42,7 +42,7 @@ function ImageUpload({ endpoint, onChange, value, showPreview = true }: ImageUpl
           <img
             src={value}
             alt="Upload"
-            className="rounded-lg w-full h-auto object-cover max-h-80"
+            className="rounded-lg w-full h-auto object-cover max-h-48 sm:max-h-80"
           />
           <button
             onClick={() => onChange("")}
