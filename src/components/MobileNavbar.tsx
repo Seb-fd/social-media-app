@@ -17,7 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   useAuth,
   SignInButton,
@@ -27,8 +27,58 @@ import {
 } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import { getUnreadNotificationCount } from "@/actions/notifications.action";
 import NotificationIndicator from "./NotificationsIndicator";
 import { usePathname } from "next/navigation";
+
+function NotificationBadge() {
+  const [count, setCount] = useState(0);
+  const [hasOpened, setHasOpened] = useState(false);
+  const mountedRef = useRef(false);
+
+  const fetchCount = useCallback(async () => {
+    try {
+      const result = await getUnreadNotificationCount();
+      const numCount = typeof result === 'number' ? result : 0;
+      if (mountedRef.current) {
+        setCount(numCount);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notification count:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    fetchCount();
+    
+    const interval = setInterval(fetchCount, 10000);
+    
+    const handleStorage = () => fetchCount();
+    window.addEventListener('storage', handleStorage);
+    
+    const handleNotificationsOpened = () => {
+      setHasOpened(true);
+    };
+    window.addEventListener('notifications_opened', handleNotificationsOpened);
+    
+    return () => {
+      mountedRef.current = false;
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('notifications_opened', handleNotificationsOpened);
+    };
+  }, [fetchCount]);
+
+  if (count === 0 || hasOpened) return null;
+
+  return (
+    <span className="absolute -top-1 -right-1 flex h-3 w-3">
+      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
+    </span>
+  );
+}
 
 function MobileNavbar() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
@@ -69,8 +119,9 @@ function MobileNavbar() {
 
       <Sheet open={showMobileMenu} onOpenChange={setShowMobileMenu}>
         <SheetTrigger asChild>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="relative">
             <MenuIcon className="h-5 w-5" />
+            <NotificationBadge />
           </Button>
         </SheetTrigger>
         <SheetContent side="right" className="w-[300px]">
