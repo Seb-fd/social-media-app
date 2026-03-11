@@ -4,8 +4,7 @@ import { getPosts } from "@/actions/post.action";
 import PostCard from "@/components/PostCard";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Loader2Icon } from "lucide-react";
-
-type Post = Awaited<ReturnType<typeof getPosts>>["posts"][number];
+import type { Post } from "@/types";
 
 interface PostsFeedProps {
   initialPosts: Post[];

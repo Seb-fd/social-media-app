@@ -4,8 +4,7 @@ import { getUserPosts, getUserLikedPosts } from "@/actions/profile.action";
 import PostCard from "@/components/PostCard";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Loader2Icon } from "lucide-react";
-
-type Post = Awaited<ReturnType<typeof getUserPosts>>["posts"][number];
+import type { Post } from "@/types";
 
 interface ProfilePostsFeedProps {
   userId: string;

@@ -26,34 +26,64 @@ export async function generateMetadata({
 }
 
 async function ProfilePageServer({ params }: { params: { username: string } }) {
-  const user = await getProfileByUsername(params.username);
-  if (!user) notFound();
+  try {
+    const user = await getProfileByUsername(params.username);
+    if (!user) notFound();
 
-  const currentClerkUser = await currentUser();
-  const currentDbUserId = currentClerkUser ? await getDbUserId().catch(() => null) : null;
+    const currentClerkUser = await currentUser();
+    const currentDbUserId = currentClerkUser ? await getDbUserId().catch(() => null) : null;
 
-  const [postsResult, likedPostsResult, isCurrentUserFollowing] =
-    await Promise.all([
-      getUserPosts(user.id, 10),
-      getUserLikedPosts(user.id, 10),
-      isFollowing(user.id),
-    ]);
+    const [postsResult, likedPostsResult, isCurrentUserFollowing] =
+      await Promise.all([
+        getUserPosts(user.id, 10),
+        getUserLikedPosts(user.id, 10),
+        isFollowing(user.id),
+      ]);
 
-  let currentUserFollowingIds: string[] = [];
-  if (currentDbUserId) {
-    const currentUserFollowing = await getFollowing(currentDbUserId);
-    currentUserFollowingIds = currentUserFollowing.map((f) => f.id);
+    let currentUserFollowingIds: string[] = [];
+    if (currentDbUserId) {
+      const currentUserFollowing = await getFollowing(currentDbUserId);
+      currentUserFollowingIds = currentUserFollowing.map((f) => f.id);
+    }
+
+    const serializedUser = {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      followers: user.followers,
+      following: user.following,
+    };
+
+    const serializedPosts = postsResult.posts.map((post) => ({
+      ...post,
+      createdAt: post.createdAt.toISOString(),
+      comments: post.comments.map((comment) => ({
+        ...comment,
+        createdAt: comment.createdAt.toISOString(),
+      })),
+    }));
+
+    const serializedLikedPosts = likedPostsResult.posts.map((post) => ({
+      ...post,
+      createdAt: post.createdAt.toISOString(),
+      comments: post.comments.map((comment) => ({
+        ...comment,
+        createdAt: comment.createdAt.toISOString(),
+      })),
+    }));
+
+    return (
+      <ProfilePageClient
+        user={serializedUser}
+        initialPosts={serializedPosts}
+        initialLikedPosts={serializedLikedPosts}
+        isFollowing={isCurrentUserFollowing}
+        currentUserFollowingIds={currentUserFollowingIds}
+      />
+    );
+  } catch (error) {
+    console.error("ProfilePageServer error:", error);
+    throw error;
   }
-
-  return (
-    <ProfilePageClient
-      user={user}
-      initialPosts={postsResult.posts}
-      initialLikedPosts={likedPostsResult.posts}
-      isFollowing={isCurrentUserFollowing}
-      currentUserFollowingIds={currentUserFollowingIds}
-    />
-  );
 }
 
 export default ProfilePageServer;
