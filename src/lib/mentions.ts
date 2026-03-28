@@ -1,5 +1,5 @@
 export function extractMentions(text: string): string[] {
-  const mentionRegex = /@(\w+)/g;
+  const mentionRegex = /@([a-zA-Z0-9_+.-]+)/g;
   const matches = text.match(mentionRegex);
   
   if (!matches) return [];

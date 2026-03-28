@@ -7,7 +7,7 @@ interface MentionTextProps {
 }
 
 export function MentionText({ content }: MentionTextProps) {
-  const parts = content.split(/(@[\w+]+)/g);
+  const parts = content.split(/(@[a-zA-Z0-9_+.-]+)/g);
 
   return (
     <p>
